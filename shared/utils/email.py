@@ -1,4 +1,7 @@
 import smtplib
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def send_email(email, code):
@@ -6,10 +9,10 @@ def send_email(email, code):
     from email.header import Header
 
     # 配置SMTP服务器和端口
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 465
-    smtp_user = 'ticketdistance@gmail.com'
-    smtp_pass = 'ltnrwkespkxkqtok'
+    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_port = int(os.getenv('SMTP_PORT'))  # 确保这是一个整数
+    smtp_user = os.getenv('SMTP_USER')
+    smtp_pass = os.getenv('SMTP_PASS')
 
     # 创建SMTP对象
     server = smtplib.SMTP_SSL(smtp_server, smtp_port)
