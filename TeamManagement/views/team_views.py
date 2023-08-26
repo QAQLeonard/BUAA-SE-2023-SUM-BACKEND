@@ -64,7 +64,13 @@ def get_team_members(request):
         members_data.append(member_data)
 
     serializer = TeamMemberUserSerializer(members_data, many=True)
-    return JsonResponse({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
+
+    flat_data = []
+    for item in serializer.data:
+        flat_item = {**item['team'], 'role': item['role']}
+        flat_data.append(flat_item)
+
+    return JsonResponse({"status": "success", "data": flat_data}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
@@ -345,4 +351,9 @@ def get_teams(request):
     # 使用嵌套的TeamMemberTeamSerializer来进行序列化
     serializer = TeamMemberTeamSerializer(team_memberships, many=True)
 
-    return JsonResponse({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+    flat_data = []
+    for item in serializer.data:
+        flat_item = {**item['team'], 'role': item['role']}
+        flat_data.append(flat_item)
+
+    return JsonResponse({"status": "success", "data": flat_data}, status=status.HTTP_200_OK)
