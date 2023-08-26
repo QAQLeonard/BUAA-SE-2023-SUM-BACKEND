@@ -6,7 +6,8 @@ __pycache__/
 .idea/
 # C extensions
 *.so
-
+restart_server.sh
+*.log
 # Distribution / packaging
 .Python
 build/
