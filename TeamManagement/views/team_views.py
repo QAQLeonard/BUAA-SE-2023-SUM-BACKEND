@@ -356,14 +356,16 @@ def get_teams(request):
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "User not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
+        return JsonResponse({"status": "error", "message": "User not found"},
+                            status=status.HTTP_404_NOT_FOUND)
 
-    team_memberships = TeamMember.objects.filter(user=user)
-    teams = [membership.team for membership in team_memberships]
-    serializer = TeamSerializer(teams, many=True)
+    team_memberships = TeamMember.objects.filter(user=user).select_related('team')  # 使用 select_related 获取关联的 Team 对象
+    serialized_data = []
+    for membership in team_memberships:
+        team_data = TeamSerializer(membership.team).data  # 使用 TeamSerializer 序列化 Team 对象
+        member_data = TeamMemberSerializer(membership).data  # 使用 TeamMemberSerializer 序列化 TeamMember 对象
+        team_data['role'] = member_data['role']  # 添加角色信息到 team 数据中
+        serialized_data.append(team_data)
 
-    return JsonResponse({"status": "success", "message": "Teams retrieved", "data": serializer.data},
+    return JsonResponse({"status": "success", "message": "Teams retrieved", "data": serialized_data},
                         status=status.HTTP_200_OK)
