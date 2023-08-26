@@ -16,4 +16,6 @@ urlpatterns = [
     path('team_members', team_views.get_team_members),
     path('update_user', user_views.update_user),
     path('get_user', user_views.get_user),
+    path('create_team', team_views.create_team),
+    path('add_team_member', team_views.add_team_member),
 ]

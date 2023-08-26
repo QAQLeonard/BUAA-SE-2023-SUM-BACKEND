@@ -22,69 +22,66 @@ class UserCURDViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
+@api_view(['POST'])
 @csrf_exempt
 def login(request):
-    if request.method == "POST":
-        data = json.loads(request.body.decode('utf-8'))
+    data = json.loads(request.body.decode('utf-8'))
 
-        username = data.get('username')
-        password = data.get('password')
+    username = data.get('username')
+    password = data.get('password')
 
-        try:
-            user = User.objects.get(username=username)
-            if check_password(password, user.password):
-                token, created = Token.objects.get_or_create(user=user)
-                return JsonResponse({"status": "success", "token": str(token.key)}, status=status.HTTP_201_CREATED)
-            else:
-                return JsonResponse({"status": "wrong password"}, status=status.HTTP_401_UNAUTHORIZED)
-        except User.DoesNotExist:
-            return JsonResponse({"status": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
-    else:
-        return JsonResponse({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user = User.objects.get(username=username)
+        if check_password(password, user.password):
+            token, created = Token.objects.get_or_create(user=user)
+            return JsonResponse({"status": "success", "token": str(token.key)}, status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse({"status": "wrong password"}, status=status.HTTP_401_UNAUTHORIZED)
+    except User.DoesNotExist:
+        return JsonResponse({"status": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(['PUT'])
 @csrf_exempt
 def register(request):
-    if request.method == "PUT":
-        data = json.loads(request.body.decode('utf-8'))
-        username = data.get('username')
-        password = data.get('password')
-        real_name = data.get('real_name')
-        email = data.get('email')
-        code = data.get('code')
+    data = json.loads(request.body.decode('utf-8'))
+    username = data.get('username')
+    password = data.get('password')
+    real_name = data.get('real_name')
+    email = data.get('email')
+    code = data.get('code')
 
-        if not password or not email or not code or not username or not real_name:
-            return JsonResponse({'status': 'error', 'message': 'ALL messages are required'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        verification_code = VerificationCode.objects.filter(email=email).order_by('-created_at').first()
-
-        if not verification_code or verification_code.code != code:
-            return JsonResponse({'status': 'error', 'message': 'ERROR CODE'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        if verification_code.expires_at < timezone.now():
-            return JsonResponse({'status': 'error', 'message': 'Verification code expired'},
-                                status=status.HTTP_401_UNAUTHORIZED)
-
-        if get_user_by_email(email) or get_user_by_username(username):
-            return JsonResponse({'status': 'error', 'message': 'User already exists'}, status=status.HTTP_409_CONFLICT)
-
-        hashed_password = make_password(password)
-        verification_code.delete()
-        new_user = User(password=hashed_password, username=username, real_name=real_name, email=email)
-        new_user.save()
-
-        return JsonResponse({'status': 'success', 'message': 'User successfully registered'},
-                            status=status.HTTP_201_CREATED)
-    else:
-        return JsonResponse({'status': 'error', 'message': 'Invalid request method'},
+    if not password or not email or not code or not username or not real_name:
+        return JsonResponse({'status': 'error', 'message': 'ALL messages are required'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+    verification_code = VerificationCode.objects.filter(email=email).order_by('-created_at').first()
+
+    if not verification_code or verification_code.code != code:
+        return JsonResponse({'status': 'error', 'message': 'ERROR CODE'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if verification_code.expires_at < timezone.now():
+        return JsonResponse({'status': 'error', 'message': 'Verification code expired'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+    if get_user_by_email(email) or get_user_by_username(username):
+        return JsonResponse({'status': 'error', 'message': 'User already exists'}, status=status.HTTP_409_CONFLICT)
+
+    hashed_password = make_password(password)
+    verification_code.delete()
+    new_user = User(password=hashed_password, username=username, real_name=real_name, email=email)
+    new_user.save()
+
+    return JsonResponse({'status': 'success', 'message': 'User successfully registered'},
+                        status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET'])
 @csrf_exempt
 def get_verification_code(request):
+    if request.method != 'GET':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'},
+                            status=status.HTTP_400_BAD_REQUEST)
     email = request.GET.get('email')
 
     if not email:
@@ -118,12 +115,13 @@ def update_user(request):
     verification_code = VerificationCode.objects.filter(email=current_user.email).order_by('-created_at').first()
 
     if not verification_code or verification_code.code != data.get('code'):
-        return JsonResponse({'status': 'error', 'message': 'ERROR CODE'})
+        return JsonResponse({'status': 'error', 'message': 'ERROR CODE'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if verification_code.expires_at < timezone.now():
         print(verification_code.expires_at)
         print(timezone.now())
-        return JsonResponse({'status': 'error', 'message': 'Verification code expired'})
+        return JsonResponse({'status': 'error', 'message': 'Verification code expired'},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
     # 在这里进行实际的更新操作
     try:
