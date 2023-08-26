@@ -70,11 +70,12 @@ def create_team(request):
     team_description = data.get('team_description')
     team_id = data.get('team_id')
     if not team_name or not team_description or not team_id:
-        return JsonResponse({'status': 'error', 'message': 'team_name, team_description and team_id are required'})
+        return JsonResponse({'status': 'error', 'message': 'team_name, team_description and team_id are required'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     team = Team.objects.filter(team_id=team_id)
     if team.exists():
-        return JsonResponse({'status': 'error', 'message': 'Team already exists'})
+        return JsonResponse({'status': 'error', 'message': 'Team already exists'}, status=status.HTTP_409_CONFLICT)
 
     team = Team(team_id=team_id, team_name=team_name, team_description=team_description)
     team.save()
