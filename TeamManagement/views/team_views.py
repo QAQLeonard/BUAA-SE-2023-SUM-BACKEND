@@ -67,7 +67,7 @@ def get_team_members(request):
 
     flat_data = []
     for item in serializer.data:
-        flat_item = {**item['team'], 'role': item['role']}
+        flat_item = {**item['user'], 'role': item['role']}
         flat_data.append(flat_item)
 
     return JsonResponse({"status": "success", "data": flat_data}, status=status.HTTP_200_OK)
