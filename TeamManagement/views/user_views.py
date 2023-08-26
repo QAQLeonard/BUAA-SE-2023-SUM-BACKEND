@@ -61,6 +61,8 @@ def register(request):
         return JsonResponse({"status": "error", "message": "ERROR CODE"}, status=status.HTTP_401_UNAUTHORIZED)
 
     if verification_code.expires_at < timezone.now():
+        print(verification_code.expires_at)
+        print(timezone.now())
         return JsonResponse({"status": "error", "message": "Verification code expired"},
                             status=status.HTTP_401_UNAUTHORIZED)
 
