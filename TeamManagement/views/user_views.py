@@ -1,3 +1,4 @@
+from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.hashers import check_password, make_password
@@ -168,3 +169,22 @@ def get_user(request):
 
     serializer = UserSerializer(user)
     return JsonResponse({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def set_user_avatar(request):
+    if request.method == 'POST':
+        image = request.FILES['avatar']
+        fs = FileSystemStorage()
+        filename = fs.save(image.name, image)
+        url = fs.url(filename)
+
+        user = request.user
+        user.avatar = url  # assuming `avatar` is a field in the `Profile` model
+        user.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Avatar updated'})
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

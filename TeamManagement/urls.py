@@ -22,4 +22,5 @@ urlpatterns = [
     path('set_member_role', team_views.set_team_member_role),
     path('get_team_members', team_views.get_team_members),
     path('get_teams', team_views.get_teams),
+    path('upload_avatar', user_views.set_user_avatar),
 ]
