@@ -32,7 +32,7 @@ class TeamMemberCURDViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = TeamMember.objects.all()
-    serializer_class = TeamMemberSerializer
+    serializer_class = TeamMemberUserSerializer
 
 
 @csrf_exempt
@@ -63,7 +63,7 @@ def get_team_members(request):
         member_data['role'] = member.role  # Add the role information
         members_data.append(member_data)
 
-    serializer = TeamMemberSerializer(members_data, many=True)
+    serializer = TeamMemberUserSerializer(members_data, many=True)
     return JsonResponse({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
 
 
@@ -323,26 +323,6 @@ def set_team_member_role(request):
 
 
 @csrf_exempt
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def get_teams(request):
-    username = request.GET.get('username', None)
-    if username is None:
-        return JsonResponse({'error': 'Username parameter is missing'}, status=400)
-
-    try:
-        user = User.objects.get(username=username)
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
-
-    teams = user.teams.all()
-    team_names = [team.name for team in teams]
-
-    return JsonResponse({'teams': team_names})
-
-
-@csrf_exempt
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -359,13 +339,10 @@ def get_teams(request):
         return JsonResponse({"status": "error", "message": "User not found"},
                             status=status.HTTP_404_NOT_FOUND)
 
-    team_memberships = TeamMember.objects.filter(user=user).select_related('team')  # 使用 select_related 获取关联的 Team 对象
-    serialized_data = []
-    for membership in team_memberships:
-        team_data = TeamSerializer(membership.team).data  # 使用 TeamSerializer 序列化 Team 对象
-        member_data = TeamMemberSerializer(membership).data  # 使用 TeamMemberSerializer 序列化 TeamMember 对象
-        team_data['role'] = member_data['role']  # 添加角色信息到 team 数据中
-        serialized_data.append(team_data)
+    # 从TeamMember模型中获取该用户所有的团队信息
+    team_memberships = TeamMember.objects.filter(user=user)
 
-    return JsonResponse({"status": "success", "message": "Teams retrieved", "data": serialized_data},
-                        status=status.HTTP_200_OK)
+    # 使用嵌套的TeamMemberTeamSerializer来进行序列化
+    serializer = TeamMemberTeamSerializer(team_memberships, many=True)
+
+    return JsonResponse({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
