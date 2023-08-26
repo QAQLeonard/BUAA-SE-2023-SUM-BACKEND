@@ -45,7 +45,7 @@ def get_team_members(request):
         return JsonResponse({"status": "error", "message": "team_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        team = Team.objects.get(id=team_id)  # Retrieve the Team object based on the team_id
+        team = Team.objects.get(team_id=team_id)  # Retrieve the Team object based on the team_id
     except Team.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
 
