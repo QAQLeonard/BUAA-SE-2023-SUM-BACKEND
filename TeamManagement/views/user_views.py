@@ -52,40 +52,37 @@ def register(request):
     code = data.get('code')
 
     if not password or not email or not code or not username or not real_name:
-        return JsonResponse({'status': 'error', 'message': 'ALL messages are required'},
+        return JsonResponse({"status": "error", "message": "ALL messages are required"},
                             status=status.HTTP_400_BAD_REQUEST)
 
     verification_code = VerificationCode.objects.filter(email=email).order_by('-created_at').first()
 
     if not verification_code or verification_code.code != code:
-        return JsonResponse({'status': 'error', 'message': 'ERROR CODE'}, status=status.HTTP_401_UNAUTHORIZED)
+        return JsonResponse({"status": "error", "message": "ERROR CODE"}, status=status.HTTP_401_UNAUTHORIZED)
 
     if verification_code.expires_at < timezone.now():
-        return JsonResponse({'status': 'error', 'message': 'Verification code expired'},
+        return JsonResponse({"status": "error", "message": "Verification code expired"},
                             status=status.HTTP_401_UNAUTHORIZED)
 
     if get_user_by_email(email) or get_user_by_username(username):
-        return JsonResponse({'status': 'error', 'message': 'User already exists'}, status=status.HTTP_409_CONFLICT)
+        return JsonResponse({"status": "error", "message": "User already exists"}, status=status.HTTP_409_CONFLICT)
 
     hashed_password = make_password(password)
     verification_code.delete()
     new_user = User(password=hashed_password, username=username, real_name=real_name, email=email)
     new_user.save()
 
-    return JsonResponse({'status': 'success', 'message': 'User successfully registered'},
+    return JsonResponse({"status": "success", "message": "User successfully registered"},
                         status=status.HTTP_201_CREATED)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @csrf_exempt
 def get_verification_code(request):
-    if request.method != 'GET':
-        return JsonResponse({'status': 'error', 'message': 'Invalid request method'},
-                            status=status.HTTP_400_BAD_REQUEST)
     email = request.GET.get('email')
 
     if not email:
-        return JsonResponse({'status': 'error', 'message': 'email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"status": "error", "message": "email is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     code = str(random.randint(1000, 9999))
 
@@ -95,7 +92,7 @@ def get_verification_code(request):
     # 在这里添加发送邮件的代码
     send_email(email, code)
 
-    return JsonResponse({'status': 'success', 'message': 'Verification code sent'}, status=status.HTTP_200_OK)
+    return JsonResponse({"status": "success", "message": "Verification code sent"}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -109,18 +106,18 @@ def update_user(request):
 
     # 检查username是否与当前Token用户匹配
     if data.get("username") != current_user.username:
-        return JsonResponse({'status': 'error', 'message': 'You can only update your own profile'},
+        return JsonResponse({"status": "error", "message": "You can only update your own profile"},
                             status=status.HTTP_401_UNAUTHORIZED)
 
     verification_code = VerificationCode.objects.filter(email=current_user.email).order_by('-created_at').first()
 
     if not verification_code or verification_code.code != data.get('code'):
-        return JsonResponse({'status': 'error', 'message': 'ERROR CODE'}, status=status.HTTP_401_UNAUTHORIZED)
+        return JsonResponse({"status": "error", "message": "ERROR CODE"}, status=status.HTTP_401_UNAUTHORIZED)
 
     if verification_code.expires_at < timezone.now():
         print(verification_code.expires_at)
         print(timezone.now())
-        return JsonResponse({'status': 'error', 'message': 'Verification code expired'},
+        return JsonResponse({"status": "error", "message": "Verification code expired"},
                             status=status.HTTP_401_UNAUTHORIZED)
 
     # 在这里进行实际的更新操作
@@ -134,11 +131,11 @@ def update_user(request):
         # 更新邮箱
         if data.get('email') != current_user.email:
             if get_user_by_email(data.get('email')):
-                return JsonResponse({'status': 'error', 'message': 'Email already used'})
+                return JsonResponse({"status": "error", "message": "Email already used"})
             current_user.email = data.get('email')
         # 保存更改
         current_user.save()
-        return JsonResponse({'status': 'success', 'message': 'Profile updated successfully'}, status=status.HTTP_200_OK)
+        return JsonResponse({"status": "success", "message": "Profile updated successfully"}, status=status.HTTP_200_OK)
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -159,13 +156,13 @@ def get_user(request):
         query |= Q(email=email)
 
     if not query:
-        return JsonResponse({'status': 'error', 'message': 'At least one parameter is required'},
+        return JsonResponse({"status": "error", "message": "At least one parameter is required"},
                             status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.get(query)
 
     if not user:
-        return JsonResponse({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = UserSerializer(user)
     return JsonResponse({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
