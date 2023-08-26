@@ -61,7 +61,7 @@ def get_team_members(request):
 
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_team(request):
