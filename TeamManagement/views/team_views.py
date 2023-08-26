@@ -190,7 +190,8 @@ def remove_team_member(request):
     try:
         user_to_remove = User.objects.get(username=username_to_remove)
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User to remove not found"}, status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse({"status": "error", "message": "User to remove not found"},
+                            status=status.HTTP_404_NOT_FOUND)
 
     # 获取当前用户和要删除用户的团队成员信息
     try:
@@ -260,3 +261,58 @@ def get_user_role_in_team(request):
         )
 
     return JsonResponse({"status": "success", "role": role}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def set_team_member_role(request):
+    data = request.data
+    current_user = request.user
+
+    team_id = data.get('team_id')
+    target_username = data.get('username')
+    new_role = data.get('role')
+
+    # Verify the data
+    if not all([team_id, target_username, new_role]):
+        return JsonResponse({"status": "error", "message": "Incomplete data"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Make sure the new role is either 'Admin' or 'Member'
+    if new_role not in ['Admin', 'Member']:
+        return JsonResponse({"status": "error", "message": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Verify the team exists
+    try:
+        team = Team.objects.get(team_id=team_id)
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Check if the current user is an admin or the creator of the team
+    try:
+        current_member = TeamMember.objects.get(team=team, user=current_user)
+        if current_member.role not in ['Admin', 'Creator'] or (current_member.role == 'Admin' and new_role == 'Admin'):
+            return JsonResponse({"status": "error", "message": "You don't have permission to change roles"},
+                                status=status.HTTP_403_FORBIDDEN)
+    except TeamMember.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "You are not a member of this team"},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    # Get the target member
+    try:
+        target_member = TeamMember.objects.get(team=team, user__username=target_username)
+    except TeamMember.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Target member not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # You can't change the role of the team creator
+    if target_member.role == 'Creator':
+        return JsonResponse({"status": "error", "message": "Cannot change the role of the team creator"},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    # Update the role
+    target_member.role = new_role
+    target_member.save()
+
+    return JsonResponse({"status": "success", "message": f"Successfully updated role to {new_role}"},
+                        status=status.HTTP_200_OK)
