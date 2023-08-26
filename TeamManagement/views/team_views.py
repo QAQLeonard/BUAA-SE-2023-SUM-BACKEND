@@ -84,3 +84,63 @@ def create_team(request):
     group = ChatGroup(group_id=team_id, group_name=group_name, team=team)
     group.save()
     return JsonResponse({'status': 'success'})
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def add_team_member(request):
+    # 获取前端传入的JSON数据
+    data = request.data
+
+    # 获取通过Token验证的当前用户
+    current_user = request.user
+
+    # 获取团队ID和要添加的成员信息（电子邮件或用户名）
+    team_id = data.get('team_id')
+    email = data.get('email')
+    username = data.get('username')
+
+    # 验证数据完整性
+    if not team_id or not (email or username):
+        return JsonResponse({'status': 'error', 'message': 'Incomplete data'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 查找团队
+    try:
+        team = Team.objects.get(id=team_id)
+    except Team.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Team not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 检查当前用户是否为团队成员
+    is_member = TeamMember.objects.filter(team=team, user=current_user).exists()
+    if not is_member:
+        return JsonResponse({'status': 'error', 'message': 'You are not a member of this team'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    # 查找要添加的用户
+    user_to_add = None
+    if email:
+        try:
+            user_to_add = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User with this email not found'},
+                                status=status.HTTP_404_NOT_FOUND)
+    elif username:
+        try:
+            user_to_add = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User with this username not found'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+    # 检查用户是否已是团队成员
+    already_member = TeamMember.objects.filter(team=team, user=user_to_add).exists()
+    if already_member:
+        return JsonResponse({'status': 'error', 'message': 'User is already a member of this team'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # 添加用户到团队
+    TeamMember.objects.create(team=team, user=user_to_add)
+
+    return JsonResponse({'status': 'success', 'message': 'User successfully added to the team'},
+                        status=status.HTTP_201_CREATED)
