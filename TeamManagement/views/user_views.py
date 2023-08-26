@@ -51,7 +51,7 @@ def login(request):
 
 @csrf_exempt
 def register(request):
-    if request.method == "POST":
+    if request.method == "PUT":
         data = json.loads(request.body.decode('utf-8'))
         username = data.get('username')
         password = data.get('password')
