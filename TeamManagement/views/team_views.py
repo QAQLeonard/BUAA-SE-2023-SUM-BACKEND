@@ -182,7 +182,7 @@ def remove_team_member(request):
 
     # 查找团队
     try:
-        team = Team.objects.get(id=team_id)
+        team = Team.objects.get(team_id=team_id)
     except Team.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -235,7 +235,7 @@ def get_user_role_in_team(request):
         )
 
     try:
-        team = Team.objects.get(id=team_id)
+        team = Team.objects.get(team_id=team_id)
     except Team.DoesNotExist:
         return JsonResponse(
             {"status": "error", "message": "Team not found"},
