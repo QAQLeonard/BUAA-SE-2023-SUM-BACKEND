@@ -1,5 +1,3 @@
-from django.utils import timezone
-from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.hashers import check_password, make_password
@@ -9,11 +7,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework import viewsets, status
 from rest_framework.decorators import authentication_classes, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-import smtplib
 import random
 import json
-from TeamManagement.models import *
 from TeamManagement.serializers import *
 from shared.utils.TeamManage.users import *
 from shared.utils.email import send_email
@@ -43,10 +38,10 @@ def login(request):
             else:
                 return JsonResponse({"status": "wrong password"}, status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
-            return JsonResponse({"status": "user does not exist"}, status=status.HTTP_404_UNAUTHORIZED)
+            return JsonResponse({"status": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
     else:
-        return JsonResponse({"status": "error"}, status=status.HTTP_400_UNAUTHORIZED)
+        return JsonResponse({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @csrf_exempt
@@ -60,7 +55,8 @@ def register(request):
         code = data.get('code')
 
         if not password or not email or not code or not username or not real_name:
-            return JsonResponse({'status': 'error', 'message': 'ALL messages are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'status': 'error', 'message': 'ALL messages are required'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         verification_code = VerificationCode.objects.filter(email=email).order_by('-created_at').first()
 
@@ -68,7 +64,8 @@ def register(request):
             return JsonResponse({'status': 'error', 'message': 'ERROR CODE'}, status=status.HTTP_401_UNAUTHORIZED)
 
         if verification_code.expires_at < timezone.now():
-            return JsonResponse({'status': 'error', 'message': 'Verification code expired'}, status=status.HTTP_401_UNAUTHORIZED)
+            return JsonResponse({'status': 'error', 'message': 'Verification code expired'},
+                                status=status.HTTP_401_UNAUTHORIZED)
 
         if get_user_by_email(email) or get_user_by_username(username):
             return JsonResponse({'status': 'error', 'message': 'User already exists'}, status=status.HTTP_409_CONFLICT)
@@ -78,9 +75,11 @@ def register(request):
         new_user = User(password=hashed_password, username=username, real_name=real_name, email=email)
         new_user.save()
 
-        return JsonResponse({'status': 'success', 'message': 'User successfully registered'}, status=status.HTTP_201_CREATED)
+        return JsonResponse({'status': 'success', 'message': 'User successfully registered'},
+                            status=status.HTTP_201_CREATED)
     else:
-        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -162,7 +161,8 @@ def get_user(request):
         query |= Q(email=email)
 
     if not query:
-        return JsonResponse({'status': 'error', 'message': 'At least one parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'status': 'error', 'message': 'At least one parameter is required'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.get(query)
 

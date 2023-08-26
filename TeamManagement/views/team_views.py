@@ -83,6 +83,14 @@ def create_team(request):
     group_name = team_name + '默认群聊'
     group = ChatGroup(group_id=team_id, group_name=group_name, team=team)
     group.save()
+
+    # 将创建者加入Team和ChatGroup
+    user = request.user
+    team_member = TeamMember(team=team, user=user, role='Creator')
+    team_member.save()
+    group_member = GroupMember(group=group, user=user)
+    group_member.save()
+
     return JsonResponse({'status': 'success'})
 
 

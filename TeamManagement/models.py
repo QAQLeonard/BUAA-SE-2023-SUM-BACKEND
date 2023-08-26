@@ -29,15 +29,26 @@ class Team(models.Model):
 
 
 class TeamMember(models.Model):
+    ROLE_TYPE_CHOICES = [
+        ('Creator', 'Creator'),
+        ('Admin', 'Admin'),
+        ('Member', 'Member'),
+    ]
+
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=255)
+    role = models.CharField(
+        max_length=255,
+        choices=ROLE_TYPE_CHOICES,
+        default='Member',
+    )
 
     class Meta:
         db_table = 'TeamMembers'
+        unique_together = ['team', 'user']  # 确保每个组合的(team, user)是唯一的
 
     def __str__(self):
-        return str(self.team)
+        return f"{self.team} - {self.user} ({self.get_role_display()})"
 
 
 class ChatGroup(models.Model):
