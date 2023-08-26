@@ -17,6 +17,9 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
+    user = UserSerializer()  # 嵌套使用 UserSerializer
+    role = serializers.CharField()  # 显式声明，以便将其包括在序列化输出中
+
     class Meta:
         model = TeamMember
-        fields = '__all__'
+        fields = ('user', 'role')  # 返回 'user' 和 'role'
