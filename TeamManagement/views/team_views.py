@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
@@ -156,6 +157,7 @@ def add_team_member(request):
 
     # 添加用户到团队
     TeamMember.objects.create(team=team, user=user_to_add)
+    GroupMember.objects.create(group=ChatGroup.objects.get(team=team), user=user_to_add)
 
     return JsonResponse({'status': 'success', "message": "User successfully added to the team"},
                         status=status.HTTP_201_CREATED)
@@ -216,6 +218,8 @@ def remove_team_member(request):
 
     # 删除团队成员
     team_member_to_remove.delete()
+    group_member_to_remove = GroupMember.objects.get(group=ChatGroup.objects.get(team=team), user=user_to_remove)
+    group_member_to_remove.delete()
 
     return JsonResponse({"status": "success", "message": "Member successfully removed from the team"},
                         status=status.HTTP_200_OK)
@@ -315,4 +319,51 @@ def set_team_member_role(request):
     target_member.save()
 
     return JsonResponse({"status": "success", "message": f"Successfully updated role to {new_role}"},
+                        status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_teams(request):
+    username = request.GET.get('username', None)
+    if username is None:
+        return JsonResponse({'error': 'Username parameter is missing'}, status=400)
+
+    try:
+        user = User.objects.get(username=username)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+    teams = user.teams.all()
+    team_names = [team.name for team in teams]
+
+    return JsonResponse({'teams': team_names})
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_teams(request):
+    username = request.GET.get('username', None)
+
+    if username is None:
+        return JsonResponse({"status": "error", "message": "Username parameter is missing"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    team_memberships = TeamMember.objects.filter(user=user)
+    teams = [membership.team for membership in team_memberships]
+    serializer = TeamSerializer(teams, many=True)
+
+    return JsonResponse({"status": "success", "message": "Teams retrieved", "data": serializer.data},
                         status=status.HTTP_200_OK)
