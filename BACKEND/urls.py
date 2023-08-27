@@ -20,5 +20,6 @@ from TeamManagement import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('TeamManagement.urls')),
+    path('api/v1/tm/', include('TeamManagement.urls')),
+    path('api/v1/pe/', include('ProjectExecution.urls')),
 ]
