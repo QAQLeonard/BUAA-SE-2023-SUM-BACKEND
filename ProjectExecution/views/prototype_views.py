@@ -24,7 +24,8 @@ def create_prototype(request):
         project = Project.objects.get(project_id=data.get('project_id'))
     except Project.DoesNotExist:
         return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
+    if Prototype.objects.filter(project=project, prototype_name=data.get('prototype_name')).exists():
+        return Response({"status": "error", "message": "Prototype already exists"}, status=status.HTTP_400_BAD_REQUEST)
     long_str = data.get("file_str", "")
     prototype = Prototype(
         prototype_id=data.get('prototype_id'),

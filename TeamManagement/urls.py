@@ -26,4 +26,5 @@ urlpatterns = [
     path('upload_avatar', user_views.set_user_avatar),
 
     path('save_message', chat_views.save_message),
+    path('get_groups', chat_views.get_groups),
 ]

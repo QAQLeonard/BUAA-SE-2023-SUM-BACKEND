@@ -2,9 +2,11 @@ import json
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
-from TeamManagement.models import Message, User, ChatGroup
+from TeamManagement.models import Message, User, ChatGroup, GroupMember
 
 
 @csrf_exempt  # 注意：在生产环境中，你应该使用更安全的方法来处理 CSRF。
@@ -39,3 +41,33 @@ def save_message(request):
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_groups(request):
+    username = request.GET.get('username')
+    if not username:
+        return JsonResponse({'status': 'error', 'message': 'Missing required fields'})
+
+    # 获取用户对象
+    user = User.objects.get(username=username)
+    if not user:
+        return JsonResponse({'status': 'error', 'message': 'User does not exist'})
+    # 获取用户所在的所有群组
+    group_members = GroupMember.objects.filter(user=user)
+    groups = [gm.group for gm in group_members]
+
+    # 将群组信息序列化为 JSON 格式
+    data = []
+    for group in groups:
+        data.append({
+            'group_id': group.group_id,
+            'group_name': group.group_name,
+            'group_type': group.group_type,
+            'team_id': group.team.team_id,
+        })
+
+    return JsonResponse({'status': 'success', 'data': data})
