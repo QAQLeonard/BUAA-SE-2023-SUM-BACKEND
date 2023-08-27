@@ -30,7 +30,6 @@ def create_project(request):
         team = Team.objects.get(team_id=team_id)
 
     except Team.DoesNotExist:
-        print("Team does not exist"+team_id)
         return Response({"status": "error", "message": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     # 使用获取的数据创建新的Project对象
