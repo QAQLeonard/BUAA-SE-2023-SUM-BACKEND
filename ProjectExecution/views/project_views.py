@@ -9,7 +9,7 @@ from django.core.files.storage import default_storage
 from ProjectExecution.models import Project
 from ProjectExecution.serializers import ProjectSerializer
 
-from TeamManagement.models import Team
+from TeamManagement.models import Team, TeamMember
 
 
 @csrf_exempt
@@ -120,7 +120,9 @@ def get_team_projects(request):
         return Response({"error": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     # 验证请求用户是否为团队成员
-    if request.user not in team.members.all():
+    try:
+        team_membership = TeamMember.objects.get(team=team, user=request.user)
+    except TeamMember.DoesNotExist:
         return Response({"error": "You are not a member of this team"}, status=status.HTTP_403_FORBIDDEN)
 
     # 获取并返回该团队的所有项目
