@@ -1,24 +1,27 @@
 package top.leonardsaikou.sesum2023backendwebsocket.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.server.standard.ServerEndpointExporter;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import top.leonardsaikou.sesum2023backendwebsocket.controller.ChatController;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
-@EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer
 {
-    @Autowired
-    private ChatController chatController;
 
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry)
-    {
-        registry.addHandler(new ChatController(), "/chat").setAllowedOrigins("*");  // 允许所有域名访问，根据需要进行设置
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic");
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/websocket").setAllowedOrigins("*").withSockJS();
     }
 }
+
+
+
+
