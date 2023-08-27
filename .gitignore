@@ -8,6 +8,7 @@ __pycache__/
 *.so
 restart_server.sh
 *.log
+project_images/
 # Distribution / packaging
 .Python
 build/
