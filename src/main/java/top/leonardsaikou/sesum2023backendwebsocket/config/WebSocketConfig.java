@@ -7,16 +7,14 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import top.leonardsaikou.sesum2023backendwebsocket.controller.ChatController;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer
 {
-    @Bean
-    public ServerEndpointExporter serverEndpointExporter()
-    {
-        return new ServerEndpointExporter();
-    }
+    @Autowired
+    private ChatController chatController;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry)
