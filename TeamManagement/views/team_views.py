@@ -348,3 +348,25 @@ def get_teams(request):
         flat_data.append(flat_item)
 
     return JsonResponse({"status": "success", "data": flat_data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_team(request):
+    team_id = request.GET.get('team_id')
+
+    if team_id is None:
+        return JsonResponse({"status": "error", "message": "team_id parameter is required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        team = Team.objects.get(team_id=team_id)
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Team not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TeamSerializer(team)
+
+    return JsonResponse({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)

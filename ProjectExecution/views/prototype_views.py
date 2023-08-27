@@ -143,3 +143,27 @@ def get_prototypes(request):
     serializer = PrototypeSerializer(prototypes, many=True)
     return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_prototype(request):
+    prototype_id = request.GET.get('prototype_id', None)
+    if not prototype_id:
+        return Response({"status": "error", "message": "prototype_id parameter is required"},
+                        status=status.HTTP_400_BAD_REQUEST)
+    try:
+        prototype = Prototype.objects.get(prototype_id=prototype_id)
+    except Prototype.DoesNotExist:
+        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+    response_data = {
+        'prototype_id': prototype.prototype_id,
+        'prototype_name': prototype.prototype_name,
+        'prototype_description': prototype.prototype_description,
+        'project_id': prototype.project.project_id if prototype.project else None,
+        'tag': prototype.tag,
+    }
+    return Response({"status": "success", "data": response_data}, status=status.HTTP_200_OK)
+

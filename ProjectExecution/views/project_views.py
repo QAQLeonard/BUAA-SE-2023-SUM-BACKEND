@@ -130,3 +130,24 @@ def get_team_projects(request):
     project_data = [{"project_id": project.project_id, "project_name": project.project_name} for project in projects]
 
     return Response({"status": "success", "projects": project_data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_project(request):
+    project_id = request.GET.get('project_id')
+    if not project_id:
+        return Response({"status": "error", "message": "Project ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        project = Project.objects.get(project_id=project_id)
+    except Project.DoesNotExist:
+        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    response_data = {
+        "project_id": project.project_id,
+        "project_name": project.project_name,
+        "project_description": project.project_description,
+        "team_id": project.team.team_id,
+    }
+    return Response({"status": "success", "project": response_data}, status=status.HTTP_200_OK)
