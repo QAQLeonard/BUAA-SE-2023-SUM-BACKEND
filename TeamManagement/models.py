@@ -1,8 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
-import datetime
-
 
 # User model, extending Django's AbstractUser
 from shared.utils.datetime import get_expiry_time
@@ -21,7 +18,7 @@ class User(AbstractUser):
 
 
 class Team(models.Model):
-    team_id = models.CharField(max_length=20, primary_key=True)
+    team_id = models.CharField(max_length=40, primary_key=True)
     team_name = models.CharField(max_length=255)
     team_description = models.CharField(max_length=255)
 
@@ -60,7 +57,7 @@ class ChatGroup(models.Model):
         ('Public', 'Public'),
         ('Private', 'Private'),
     ]
-    group_id = models.CharField(max_length=20, primary_key=True)
+    group_id = models.CharField(max_length=40, primary_key=True)
     group_name = models.CharField(max_length=255)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     group_type = models.CharField(max_length=255, choices=GROUP_TYPE_CHOICES, default='Public')
@@ -90,7 +87,7 @@ class Message(models.Model):
         ('File', 'File'),
     ]
 
-    message_id = models.CharField(max_length=20, primary_key=True)
+    message_id = models.CharField(max_length=40, primary_key=True)
     group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=255)

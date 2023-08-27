@@ -1,23 +1,13 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from django.contrib.auth.hashers import check_password, make_password
-from django.db.models import Q
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
 from rest_framework import viewsets, status
 from rest_framework.decorators import authentication_classes, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-import smtplib
-import random
 import json
-from TeamManagement.models import *
 from TeamManagement.serializers import *
 from shared.utils.TeamManage.users import *
-from shared.utils.email import send_email
 
 
 class TeamCURDViewSet(viewsets.ModelViewSet):

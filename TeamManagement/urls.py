@@ -23,4 +23,6 @@ urlpatterns = [
     path('get_team_members', team_views.get_team_members),
     path('get_teams', team_views.get_teams),
     path('upload_avatar', user_views.set_user_avatar),
+
+    path('save_message', chat_views.save_message),
 ]
