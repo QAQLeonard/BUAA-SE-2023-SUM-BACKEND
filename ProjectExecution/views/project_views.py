@@ -30,7 +30,8 @@ def create_project(request):
         team = Team.objects.get(team_id=team_id)
 
     except Team.DoesNotExist:
-        return Response({"error": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        print("Team does not exist"+team_id)
+        return Response({"status": "error", "message": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     # 使用获取的数据创建新的Project对象
     project = Project(
@@ -67,7 +68,7 @@ def update_project(request):
         project = Project.objects.get(project_id=data.get('project_id'))
         team = Team.objects.get(team_id=data.get('team_id'))
     except (Project.DoesNotExist, Team.DoesNotExist):
-        return Response({"error": "Project or Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "error", "message": "Project or Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     # 更新数据
     project.project_name = data.get('project_name', project.project_name)
@@ -100,7 +101,7 @@ def delete_project(request):
     try:
         project = Project.objects.get(project_id=project_id)
     except Project.DoesNotExist:
-        return Response({"error": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     project.delete()
 
@@ -117,13 +118,13 @@ def get_team_projects(request):
     try:
         team = Team.objects.get(team_id=team_id)
     except Team.DoesNotExist:
-        return Response({"error": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "error", "message": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     # 验证请求用户是否为团队成员
     try:
         team_membership = TeamMember.objects.get(team=team, user=request.user)
     except TeamMember.DoesNotExist:
-        return Response({"error": "You are not a member of this team"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"status": "error", "message": "You are not a member of this team"}, status=status.HTTP_403_FORBIDDEN)
 
     # 获取并返回该团队的所有项目
     projects = Project.objects.filter(team=team)
