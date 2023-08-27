@@ -43,7 +43,7 @@ def create_project(request):
             project.project_image.delete(save=False)  # 删除旧文件
             project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
 
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response({"status": "success", "message": "Project Created"}, status=status.HTTP_201_CREATED)
 
 
 @csrf_exempt
@@ -80,7 +80,7 @@ def update_project(request):
             project.project_image.delete(save=False)
             project.project_image.save(new_filename, new_file, save=True)
 
-        return Response({"status": "success", "message": "Project Created"}, status=status.HTTP_200_OK)
+        return Response({"status": "success", "message": "Project Updated"}, status=status.HTTP_200_OK)
     return Response({"status": "error", "message": "Unknown"}, status=status.HTTP_400_BAD_REQUEST)
 
 
