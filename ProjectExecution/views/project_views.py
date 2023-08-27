@@ -12,6 +12,7 @@ from ProjectExecution.serializers import ProjectSerializer
 from TeamManagement.models import Team
 
 
+@csrf_exempt
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -56,6 +57,7 @@ def create_project(request):
     return Response({"status": "success", "message": "Project Created"}, status=status.HTTP_201_CREATED)
 
 
+@csrf_exempt
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -88,6 +90,7 @@ def update_project(request):
     return Response({"status": "success", "message": "Project Updated"}, status=status.HTTP_200_OK)
 
 
+@csrf_exempt
 @api_view(['DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -103,3 +106,25 @@ def delete_project(request):
 
     return Response({"status": "success", "message": "Project Deleted"}, status=status.HTTP_200_OK)
 
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_team_projects(request):
+    team_id = request.GET.get('team_id')
+
+    try:
+        team = Team.objects.get(team_id=team_id)
+    except Team.DoesNotExist:
+        return Response({"error": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 验证请求用户是否为团队成员
+    if request.user not in team.members.all():
+        return Response({"error": "You are not a member of this team"}, status=status.HTTP_403_FORBIDDEN)
+
+    # 获取并返回该团队的所有项目
+    projects = Project.objects.filter(team=team)
+    project_data = [{"project_id": project.project_id, "project_name": project.project_name} for project in projects]
+
+    return Response({"status": "success", "projects": project_data}, status=status.HTTP_200_OK)

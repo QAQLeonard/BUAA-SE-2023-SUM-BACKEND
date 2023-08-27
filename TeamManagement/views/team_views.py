@@ -116,6 +116,7 @@ def add_team_member(request):
 
     # 验证数据完整性
     if not team_id or not (email or username):
+        print(team_id, email, username)
         return JsonResponse({"status": "error", "message": "Incomplete data"}, status=status.HTTP_400_BAD_REQUEST)
 
     # 查找团队
