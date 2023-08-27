@@ -55,13 +55,13 @@ def update_project(request):
         project_id = request.data.get('project_id')
         project = Project.objects.get(project_id=project_id)
     except Project.DoesNotExist:
-        return Response({'error': 'Project does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
     team_id = request.data.get('team_id')
     try:
         team = Team.objects.get(team_id=team_id)
     except Team.DoesNotExist:
-        return Response({'error': 'Team does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "error", "message": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = ProjectSerializer(project, data=request.data)
 
@@ -80,8 +80,8 @@ def update_project(request):
             project.project_image.delete(save=False)
             project.project_image.save(new_filename, new_file, save=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "success", "message": "Project Created"}, status=status.HTTP_200_OK)
+    return Response({"status": "error", "message": "Unknown"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @csrf_exempt
@@ -93,7 +93,7 @@ def delete_project(request):
         project_id = request.data.get('project_id')
         project = Project.objects.get(project_id=project_id)
     except Project.DoesNotExist:
-        return Response({'error': 'Project does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
     project.delete()
-    return Response({'status': 'Project deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({"status": "success", "message": "Project deleted"}, status=status.HTTP_204_NO_CONTENT)
