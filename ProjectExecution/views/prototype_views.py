@@ -108,6 +108,8 @@ def restore_prototype(request):
     except ObjectDoesNotExist:
         return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
+    if prototype.tag != 'Deleted':
+        return Response({"status": "error", "message": "Prototype is not deleted"}, status=status.HTTP_400_BAD_REQUEST)
     # Restore the prototype by updating the tag to 'Normal'
     prototype.tag = 'Normal'
     prototype.save()

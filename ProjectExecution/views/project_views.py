@@ -122,6 +122,8 @@ def restore_project(request):
         project = Project.objects.get(project_id=project_id)
     except Project.DoesNotExist:
         return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    if project.tag != 'Deleted':
+        return Response({"status": "error", "message": "Project is not deleted"}, status=status.HTTP_400_BAD_REQUEST)
     project.tag = 'Normal'
     project.save()
     return Response({"status": "success", "message": "Project Restored"}, status=status.HTTP_200_OK)
