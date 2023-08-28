@@ -43,7 +43,7 @@ def login(request):
         return JsonResponse({"status": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['PUT'])
+@api_view(['POST'])
 @csrf_exempt
 def register(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -99,7 +99,7 @@ def get_verification_code(request):
     return JsonResponse({"status": "success", "message": "Verification code sent"}, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
+@api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_user(request):
@@ -173,7 +173,7 @@ def get_user(request):
 
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def set_user_avatar(request):

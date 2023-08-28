@@ -87,7 +87,7 @@ class Message(models.Model):
         ('File', 'File'),
     ]
 
-    message_id = models.CharField(max_length=40, primary_key=True)
+    message_id = models.CharField(max_length=60, primary_key=True)
     group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=255)
