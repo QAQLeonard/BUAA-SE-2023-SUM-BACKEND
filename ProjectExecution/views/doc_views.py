@@ -27,10 +27,10 @@ def create_doc(request):
     if Doc.objects.filter(doc_id=doc_id).exists():
         return JsonResponse({"status": "error", "message": "Doc already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
-    project = Project.objects.get(project_id=project_id)
-    if not project:
+    if not Project.objects.filter(project_id=project_id).exists():
         return JsonResponse({"status": "error", "message": "Project does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
+    project = Project.objects.get(project_id=project_id)
 
     doc = Doc(doc_id=doc_id, project=project)
     doc.save()
@@ -41,11 +41,14 @@ def create_doc(request):
 @api_view(['DELETE'])
 def delete_doc(request):
     doc_id = request.GET.get('doc_id')
+    if not doc_id:
+        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    if not Doc.objects.filter(doc_id=doc_id).exists():
+        return JsonResponse({"status": "error", "message": "Doc does not exist"},
+                            status=status.HTTP_400_BAD_REQUEST)
     doc = Doc.objects.get(doc_id=doc_id)
     doc.delete()
-    if not doc:
-        return JsonResponse({"status": "error", "message": "Document does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
     return JsonResponse({"status": "success", "message": "Document deleted"}, status=status.HTTP_200_OK)
 
 
@@ -55,13 +58,13 @@ def delete_doc(request):
 def update_doc_permissions(request):
     editable_by_guests = request.data.get('editable_by_guests')
     doc_id = request.data.get('doc_id')
-    if editable_by_guests is None:
+    if editable_by_guests is None or not doc_id:
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
-    doc = Doc.objects.get(doc_id=doc_id)
-    if not doc:
-        return JsonResponse({"status": "error", "message": "Document does not exist"},
+    if not Doc.objects.filter(doc_id=doc_id).exists():
+        return JsonResponse({"status": "error", "message": "Doc does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
+    doc = Doc.objects.get(doc_id=doc_id)
     doc.editable_by_guests = editable_by_guests
     doc.save()
 
@@ -72,10 +75,13 @@ def update_doc_permissions(request):
 @api_view(['GET'])
 def get_doc_permissions(request):
     doc_id = request.GET.get('doc_id')
-    doc = Doc.objects.get(doc_id=doc_id)
-    if not doc:
-        return JsonResponse({"status": "error", "message": "Document does not exist"},
+    if not doc_id:
+        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
                             status=status.HTTP_400_BAD_REQUEST)
+    if not Doc.objects.filter(doc_id=doc_id).exists():
+        return JsonResponse({"status": "error", "message": "Doc does not exist"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    doc = Doc.objects.get(doc_id=doc_id)
     ebg = doc.editable_by_guests
     username = request.GET.get('username')
     if not username and not ebg:
@@ -84,13 +90,12 @@ def get_doc_permissions(request):
     elif not username and ebg:
         return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
                             status=status.HTTP_200_OK)
-    user = User.objects.get(username=username)
-    if not user:
+    if not User.objects.filter(username=username).exists():
         return JsonResponse({"status": "error", "message": "User does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
+    user = User.objects.get(username=username)
     team = doc.project.team
-    team_member = TeamMember.objects.get(team=team, user=user)
-    if not team_member and not ebg:
+    if not TeamMember.objects.filter(team=team, user=user).exists() and not ebg:
         return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
                             status=status.HTTP_400_BAD_REQUEST)
     else:
