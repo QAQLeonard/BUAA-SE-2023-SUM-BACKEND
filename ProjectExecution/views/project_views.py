@@ -113,12 +113,27 @@ def delete_project(request):
 
 
 @csrf_exempt
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def restore_project(request):
+    project_id = request.data.get('project_id')
+    try:
+        project = Project.objects.get(project_id=project_id)
+    except Project.DoesNotExist:
+        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    project.tag = 'Normal'
+    project.save()
+    return Response({"status": "success", "message": "Project Restored"}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_team_projects(request):
     team_id = request.GET.get('team_id')
-
+    tag = request.GET.get('tag')
     try:
         team = Team.objects.get(team_id=team_id)
     except Team.DoesNotExist:
@@ -132,7 +147,7 @@ def get_team_projects(request):
                         status=status.HTTP_403_FORBIDDEN)
 
     # 获取并返回该团队的所有项目
-    projects = Project.objects.filter(team=team)
+    projects = Project.objects.filter(team=team, tag=tag)
     project_data = [{"project_id": project.project_id, "project_name": project.project_name} for project in projects]
 
     return Response({"status": "success", "projects": project_data}, status=status.HTTP_200_OK)
@@ -155,5 +170,6 @@ def get_project(request):
         "project_name": project.project_name,
         "project_description": project.project_description,
         "team_id": project.team.team_id,
+        "tag": project.tag,
     }
     return Response({"status": "success", "project": response_data}, status=status.HTTP_200_OK)

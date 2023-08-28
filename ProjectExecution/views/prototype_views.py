@@ -96,6 +96,23 @@ def delete_prototype(request):
         return Response({"status": "success", "message": "Prototype Removed"}, status=status.HTTP_200_OK)
 
 
+@csrf_exempt
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def restore_prototype(request):
+    prototype_id = request.GET.get('prototype_id')
+
+    try:
+        prototype = Prototype.objects.get(prototype_id=prototype_id)
+    except ObjectDoesNotExist:
+        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Restore the prototype by updating the tag to 'Normal'
+    prototype.tag = 'Normal'
+    prototype.save()
+    return Response({"status": "success", "message": "Prototype Restored"}, status=status.HTTP_200_OK)
+
 # @csrf_exempt
 # @api_view(['GET'])
 # @authentication_classes([TokenAuthentication])
