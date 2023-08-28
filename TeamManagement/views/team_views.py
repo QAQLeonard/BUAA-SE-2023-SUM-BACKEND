@@ -84,8 +84,8 @@ def create_team(request):
     team.save()
 
     # 创建默认群聊
-    group_name = team_name + '默认群聊'
-    group = ChatGroup(group_id=team_id, group_name=group_name, team=team)
+    group_name = team_name + '_ChatGroup'
+    group = ChatGroup(group_id=team_id+"_DefaultChatGroup", group_name=group_name, team=team)
     group.save()
 
     # 将创建者加入Team和ChatGroup

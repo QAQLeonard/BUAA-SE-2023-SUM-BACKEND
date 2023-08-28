@@ -86,7 +86,7 @@ def get_doc_permissions(request):
     username = request.GET.get('username')
     if not username and not ebg:
         return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_200_OK)
     elif not username and ebg:
         return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
                             status=status.HTTP_200_OK)
@@ -97,7 +97,7 @@ def get_doc_permissions(request):
     team = doc.project.team
     if not TeamMember.objects.filter(team=team, user=user).exists() and not ebg:
         return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_200_OK)
     else:
         return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
                             status=status.HTTP_200_OK)
