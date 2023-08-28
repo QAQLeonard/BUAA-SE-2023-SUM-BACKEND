@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import *
-from .views import prototype_views
+from .views import prototype_views, doc_views
 
 urlpatterns = [
     path('create_project', project_views.create_project),
@@ -16,4 +16,9 @@ urlpatterns = [
     path('get_prototype_file', prototype_views.get_prototype_file),
     path('get_project_prototypes', prototype_views.get_prototypes),
     path('get_prototype', prototype_views.get_prototype),
+
+    path('create_doc', doc_views.create_doc),
+    path('delete_doc', doc_views.delete_doc),
+    path('update_doc_permissions', doc_views.update_doc_permissions),
+    path('get_doc_permissions', doc_views.get_doc_permissions),
 ]

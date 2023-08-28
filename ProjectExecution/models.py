@@ -36,3 +36,15 @@ class Prototype(models.Model):
 
     def __str__(self):
         return self.prototype_name
+
+
+class Doc(models.Model):
+    doc_id = models.CharField(max_length=40, primary_key=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    editable_by_guests = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'Docs'
+
+    def __str__(self):
+        return self.doc_id

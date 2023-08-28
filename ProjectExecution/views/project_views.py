@@ -123,7 +123,8 @@ def get_team_projects(request):
     try:
         team_membership = TeamMember.objects.get(team=team, user=request.user)
     except TeamMember.DoesNotExist:
-        return Response({"status": "error", "message": "You are not a member of this team"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"status": "error", "message": "You are not a member of this team"},
+                        status=status.HTTP_403_FORBIDDEN)
 
     # 获取并返回该团队的所有项目
     projects = Project.objects.filter(team=team)
