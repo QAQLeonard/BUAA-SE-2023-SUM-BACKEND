@@ -293,7 +293,7 @@ def set_team_member_role(request):
     # Check if the current user is an admin or the creator of the team
     try:
         current_member = TeamMember.objects.get(team=team, user=current_user)
-        if current_member.role not in ['Admin', 'Creator'] or (current_member.role == 'Admin' and new_role == 'Admin'):
+        if current_member.role not in ['Admin', 'Creator']:
             return JsonResponse({"status": "error", "message": "You don't have permission to change roles"},
                                 status=status.HTTP_403_FORBIDDEN)
     except TeamMember.DoesNotExist:
