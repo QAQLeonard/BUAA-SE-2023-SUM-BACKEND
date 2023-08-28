@@ -77,10 +77,10 @@ def create_team(request):
                             status=status.HTTP_400_BAD_REQUEST)
 
     team = Team.objects.filter(team_id=team_id)
-    if team.exists():
-        return JsonResponse({"status": "error", "message": "Team already exists"}, status=status.HTTP_409_CONFLICT)
+    # if team.exists():
+    #     return JsonResponse({"status": "error", "message": "Team already exists"}, status=status.HTTP_409_CONFLICT)
 
-    team = Team(team_id=team_id, team_name=team_name, team_description=team_description)
+    # team = Team(team_id=team_id, team_name=team_name, team_description=team_description)
     # team.save()
 
     # 创建默认群聊
