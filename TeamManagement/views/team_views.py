@@ -310,7 +310,9 @@ def set_team_member_role(request):
     if target_member.role == 'Creator':
         return JsonResponse({"status": "error", "message": "Cannot change the role of the team creator"},
                             status=status.HTTP_403_FORBIDDEN)
-
+    if target_member.role == 'Admin' and new_role == 'Member' and current_member.role != 'Creator':
+        return JsonResponse({"status": "error", "message": "Only the creator can change an admin to a member"},
+                            status=status.HTTP_403_FORBIDDEN)
     # Update the role
     target_member.role = new_role
     target_member.save()
