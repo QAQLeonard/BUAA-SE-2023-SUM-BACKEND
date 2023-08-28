@@ -1,3 +1,4 @@
+from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -177,15 +178,25 @@ def get_user(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def set_user_avatar(request):
-    if request.method == 'POST':
-        image = request.FILES['avatar']
-        fs = FileSystemStorage()
-        filename = fs.save(image.name, image)
-        url = fs.url(filename)
-
-        user = request.user
-        user.avatar = url  # assuming `avatar` is a field in the `Profile` model
-        user.save()
-
-        return JsonResponse({'status': 'success', 'message': 'Avatar updated'})
-    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+    try:
+        # 从请求中获取文件
+        avatar = request.FILES.get('avatar', None)
+        if not avatar:
+            return JsonResponse({"status": "error", "message": "No avatar file provided"},
+                                status=status.HTTP_400_BAD_REQUEST)
+        # 获取用户
+        user = User.objects.get(username=request.user.username)
+        # 删除旧的头像文件，如果存在的话
+        if user.avatar:
+            user.avatar.delete(save=False)
+        # 创建新的头像文件名
+        new_filename = f"{user.username}_avatar.png"
+        # 读取和保存新文件
+        new_file = ContentFile(avatar.read())
+        new_file.name = new_filename
+        # 保存新的头像
+        user.avatar.save(new_filename, new_file, save=True)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"An error occurred: {str(e)}"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse({"status": "success", "message": "Avatar updated successfully"}, status=status.HTTP_200_OK)
