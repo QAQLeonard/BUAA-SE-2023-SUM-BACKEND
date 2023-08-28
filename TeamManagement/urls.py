@@ -27,4 +27,5 @@ urlpatterns = [
 
     path('save_message', chat_views.save_message),
     path('get_groups', chat_views.get_groups),
+    path('get_messages', chat_views.get_group_messages),
 ]

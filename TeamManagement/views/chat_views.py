@@ -2,6 +2,7 @@ import json
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -71,3 +72,38 @@ def get_groups(request):
         })
 
     return JsonResponse({'status': 'success', 'data': data})
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_group_messages(request):
+    group_id = request.GET.get('group_id')
+    if not group_id:
+        return JsonResponse({'status': 'error', 'message': 'Missing group_id parameter'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        group = ChatGroup.objects.get(group_id=group_id)
+    except ChatGroup.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'ChatGroup does not exist'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    messages = Message.objects.filter(group=group).order_by('timestamp')
+
+    if not messages:
+        return JsonResponse({'status': 'error', 'message': 'No messages found'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    messages_list = []
+    for message in messages:
+        messages_list.append({
+            'message_id': message.message_id,
+            'sender': message.sender.username,  # Assuming User model has a 'username' field
+            'content': message.content,
+            'timestamp': message.timestamp,
+            'message_type': message.message_type
+        })
+
+    return JsonResponse({'status': 'success', 'data': messages_list}, status=status.HTTP_200_OK)
