@@ -81,11 +81,11 @@ def create_team(request):
         return JsonResponse({"status": "error", "message": "Team already exists"}, status=status.HTTP_409_CONFLICT)
 
     team = Team(team_id=team_id, team_name=team_name, team_description=team_description)
-    team.save()
+    # team.save()
 
     # 创建默认群聊
-    group_name = team_name + '_ChatGroup'
-    group = ChatGroup(group_id=team_id+"_DefaultChatGroup", group_name=group_name, team=team)
+    group_name = team_name + '_DefaultChatGroup'
+    group = ChatGroup(group_id=team_id+"_default", group_name=group_name, team=team)
     group.save()
 
     # 将创建者加入Team和ChatGroup
