@@ -26,7 +26,9 @@ def create_prototype(request):
         return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
     if Prototype.objects.filter(project=project, prototype_name=data.get('prototype_name')).exists():
         return Response({"status": "error", "message": "Prototype already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    long_str = data.get("file_str", "")
+
+    data_str = data.get("data_str", "")
+    style_str = data.get("style_str", "")
     prototype = Prototype(
         prototype_id=data.get('prototype_id'),
         prototype_name=data.get('prototype_name'),
@@ -35,10 +37,9 @@ def create_prototype(request):
         tag=data.get('tag', 'Normal')
     )
     prototype.save()
-
     # Save the long string as a txt file in prototype_file
-    prototype.prototype_file.save(f"{prototype.prototype_id}.txt", ContentFile(long_str))
-
+    prototype.prototype_data_file.save(f"{prototype.prototype_id}_data.txt", ContentFile(data_str))
+    prototype.prototype_style_file.save(f"{prototype.prototype_id}_style.txt", ContentFile(style_str))
     return Response({"status": "success", "message": "Prototype Created"}, status=status.HTTP_201_CREATED)
 
 
