@@ -78,7 +78,7 @@ def update_prototype(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_prototype(request):
-    prototype_id = request.GET.get('prototype_id')
+    prototype_id = request.data.get('prototype_id')
 
     try:
         prototype = Prototype.objects.get(prototype_id=prototype_id)
@@ -101,7 +101,7 @@ def delete_prototype(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def restore_prototype(request):
-    prototype_id = request.GET.get('prototype_id')
+    prototype_id = request.data.get('prototype_id')
 
     try:
         prototype = Prototype.objects.get(prototype_id=prototype_id)
