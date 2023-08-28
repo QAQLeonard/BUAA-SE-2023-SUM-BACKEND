@@ -13,7 +13,7 @@ urlpatterns = [
     path('create_prototype', prototype_views.create_prototype),
     path('update_prototype', prototype_views.update_prototype),
     path('delete_prototype', prototype_views.delete_prototype),
-    path('get_prototype_file', prototype_views.get_prototype_file),
+    # path('get_prototype_file', prototype_views.get_prototype_file),
     path('get_project_prototypes', prototype_views.get_prototypes),
     path('get_prototype', prototype_views.get_prototype),
 
