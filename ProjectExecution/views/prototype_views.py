@@ -64,7 +64,7 @@ def update_prototype(request):
     data_str = data.get("data_str", None)
     style_str = data.get("style_str", None)
     if data_str is not None:
-        prototype.prototype_file.save(f"{prototype.prototype_id}_data.txt", ContentFile(data_str))
+        prototype.prototype_data_file.save(f"{prototype.prototype_id}_data.txt", ContentFile(data_str))
     if style_str is not None:
         prototype.prototype_style_file.save(f"{prototype.prototype_id}_style.txt", ContentFile(style_str))
 
