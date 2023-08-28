@@ -5,12 +5,16 @@ from TeamManagement.models import *
 
 
 class Project(models.Model):
+    TAG_CHOICES = [
+        ('Deleted', 'Deleted'),
+        ('Normal', 'Normal'),
+    ]
     project_id = models.CharField(max_length=40, primary_key=True)
     project_name = models.CharField(max_length=255)
     project_description = models.CharField(max_length=255)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     project_image = models.ImageField(upload_to='project_images/', null=True, blank=True)
-
+    tag = models.CharField(max_length=255, choices=TAG_CHOICES, default='Normal')
     class Meta:
         db_table = 'Projects'
 
