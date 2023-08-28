@@ -101,10 +101,15 @@ def delete_project(request):
         project = Project.objects.get(project_id=project_id)
     except Project.DoesNotExist:
         return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
-    project.delete()
-
-    return Response({"status": "success", "message": "Project Deleted"}, status=status.HTTP_200_OK)
+    if project.tag == 'Deleted':
+        if project.project_image:
+            project.project_image.delete(save=False)
+        project.delete()
+        return Response({"status": "success", "message": "Project Removed Completely"}, status=status.HTTP_200_OK)
+    else:
+        project.tag = 'Deleted'
+        project.save()
+        return Response({"status": "success", "message": "Project Removed"}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
