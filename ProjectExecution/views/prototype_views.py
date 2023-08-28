@@ -60,9 +60,12 @@ def update_prototype(request):
             setattr(prototype, field, data.get(field))
 
     # Update the long string as a txt file if provided
-    long_str = data.get("file_str", None)
-    if long_str is not None:
-        prototype.prototype_file.save(f"{prototype.prototype_id}.txt", ContentFile(long_str))
+    data_str = data.get("data_str", None)
+    style_str = data.get("style_str", None)
+    if data_str is not None:
+        prototype.prototype_file.save(f"{prototype.prototype_id}_data.txt", ContentFile(data_str))
+    if style_str is not None:
+        prototype.prototype_style_file.save(f"{prototype.prototype_id}_style.txt", ContentFile(style_str))
 
     prototype.save()
 
@@ -92,33 +95,37 @@ def delete_prototype(request):
         return Response({"status": "success", "message": "Prototype Removed"}, status=status.HTTP_200_OK)
 
 
-@csrf_exempt
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def get_prototype_file(request):
-    prototype_id = request.GET.get('prototype_id', None)
-
-    if not prototype_id:
-        return Response({"status": "error", "message": "prototype_id parameter is required"},
-                        status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        prototype = Prototype.objects.get(prototype_id=prototype_id)
-    except Prototype.DoesNotExist:
-        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
-    if not prototype.prototype_file:
-        return Response({"status": "error", "message": "No prototype file found"}, status=status.HTTP_404_NOT_FOUND)
-
-    try:
-        with open(prototype.prototype_file.path, 'r') as file:
-            long_str = file.read()
-    except Exception as e:
-        return Response({"status": "error", "message": f"An error occurred while reading the file: {str(e)}"},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    return Response({"status": "success", "data": long_str}, status=status.HTTP_200_OK)
+# @csrf_exempt
+# @api_view(['GET'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+# def get_prototype_file(request):
+#     prototype_id = request.GET.get('prototype_id', None)
+#
+#     if not prototype_id:
+#         return Response({"status": "error", "message": "prototype_id parameter is required"},
+#                         status=status.HTTP_400_BAD_REQUEST)
+#
+#     try:
+#         prototype = Prototype.objects.get(prototype_id=prototype_id)
+#     except Prototype.DoesNotExist:
+#         return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_404_NOT_FOUND)
+#
+#     if not prototype.prototype_data_file or not prototype.prototype_style_file:
+#         return Response({"status": "error", "message": "No prototype file found"}, status=status.HTTP_404_NOT_FOUND)
+#
+#     try:
+#         # with open(prototype.prototype_file.path, 'r') as file:
+#         #     long_str = file.read()
+#         with open(prototype.prototype_data_file.path, 'r') as file:
+#             data_str = file.read()
+#         with open(prototype.prototype_style_file.path, 'r') as file:
+#             style_str = file.read()
+#     except Exception as e:
+#         return Response({"status": "error", "message": f"An error occurred while reading the file: {str(e)}"},
+#                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#
+#     return Response({"status": "success", "data": long_str}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt

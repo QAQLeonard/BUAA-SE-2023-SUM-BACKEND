@@ -32,7 +32,8 @@ class Prototype(models.Model):
     prototype_name = models.CharField(max_length=255)
     prototype_description = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    prototype_file = models.FileField(upload_to='prototype_files/', null=True, blank=True)
+    prototype_data_file = models.FileField(upload_to='prototype_files/', null=True, blank=True)
+    prototype_style_file = models.FileField(upload_to='prototype_files/', null=True, blank=True)
     tag = models.CharField(max_length=255, choices=TAG_CHOICES, default='Normal')
 
     class Meta:
