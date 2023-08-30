@@ -164,6 +164,7 @@ def update_user_tutorial(request):
     else:
         return JsonResponse({"status": "error", "message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
+
 @csrf_exempt
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])

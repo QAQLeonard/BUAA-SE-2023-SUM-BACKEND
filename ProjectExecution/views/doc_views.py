@@ -19,9 +19,10 @@ from TeamManagement.models import Team, TeamMember, User
 def create_doc(request):
     doc_id = request.data.get('doc_id')
     project_id = request.data.get('project_id')
+    doc_name = request.data.get('doc_name')
 
     # 校验参数
-    if not doc_id or not project_id:
+    if not doc_id or not project_id or not doc_name:
         print("Missing required fields")
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -35,7 +36,7 @@ def create_doc(request):
                             status=status.HTTP_400_BAD_REQUEST)
     project = Project.objects.get(project_id=project_id)
 
-    doc = Doc(doc_id=doc_id, project=project)
+    doc = Doc(doc_id=doc_id, project=project, doc_name=doc_name)
     doc.save()
     return JsonResponse({"status": "success", "message": "Document created"}, status=status.HTTP_201_CREATED)
 
@@ -132,6 +133,7 @@ def get_project_docs(request):
     for doc in docs:
         doc_list.append({
             'doc_id': doc.doc_id,
+            'doc_name': doc.doc_name,
             'editable_by_guests': doc.editable_by_guests
         })
 
