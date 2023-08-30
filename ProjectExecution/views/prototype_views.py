@@ -11,7 +11,9 @@ from ProjectExecution.models import Project, Prototype
 from ProjectExecution.serializers import ProjectSerializer, PrototypeSerializer
 
 from TeamManagement.models import Team, TeamMember
+from threading import Lock
 
+lock = Lock()
 
 @csrf_exempt
 @api_view(['POST'])
@@ -48,37 +50,36 @@ def create_prototype(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_prototype(request):
-    data = request.data
-    print(data.get('prototype_id'))
-    try:
-        prototype = Prototype.objects.get(prototype_id=data.get('prototype_id'))
-    except ObjectDoesNotExist:
-        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    with lock:
+        data = request.data
+        print(data.get('prototype_id'))
+        try:
+            prototype = Prototype.objects.get(prototype_id=data.get('prototype_id'))
+        except ObjectDoesNotExist:
+            return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Update fields
-    for field in ['prototype_name', 'prototype_description', 'tag']:
-        if field in data:
-            setattr(prototype, field, data.get(field))
+        # Update fields
+        for field in ['prototype_name', 'prototype_description', 'tag']:
+            if field in data:
+                  setattr(prototype, field, data.get(field))
 
-    # Update the long string as a txt file if provided
-    data_str = data.get("data_str", None)
-    style_str = data.get("style_str", None)
-    if data_str is not None:
-        prototype.prototype_data_file.delete(save=False)
-        new_data_file = ContentFile(data_str)
-        new_data_file.name = f"{prototype.prototype_id}_data.txt"
-        prototype.prototype_data_file.save(new_data_file.name, new_data_file)
+        # Update the long string as a txt file if provided
+        data_str = data.get("data_str", None)
+        style_str = data.get("style_str", None)
+        if data_str is not None:
+            prototype.prototype_data_file.delete(save=False)
+            new_data_file = ContentFile(data_str)
+            new_data_file.name = f"{prototype.prototype_id}_data.txt"
+            prototype.prototype_data_file.save(new_data_file.name, new_data_file)
+            prototype.save()
+        if style_str is not None:
+            prototype.prototype_style_file.delete(save=False)
+            new_style_file = ContentFile(style_str)
+            new_style_file.name = f"{prototype.prototype_id}_style.txt"
+            prototype.prototype_style_file.save(new_style_file.name, new_style_file)
+            prototype.save()
         prototype.save()
-    if style_str is not None:
-        prototype.prototype_style_file.delete(save=False)
-        new_style_file = ContentFile(style_str)
-        new_style_file.name = f"{prototype.prototype_id}_style.txt"
-        prototype.prototype_style_file.save(new_style_file.name, new_style_file)
-        prototype.save()
-
-    prototype.save()
-
-    return Response({"status": "success", "message": "Prototype Updated"}, status=status.HTTP_200_OK)
+        return Response({"status": "success", "message": "Prototype Updated"}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
