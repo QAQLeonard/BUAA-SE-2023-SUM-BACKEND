@@ -150,20 +150,17 @@ def update_user(request):
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_user
 def update_user_tutorial(request):
-    username = request.GET.get('username')
+    user = request.user_object
     has_completed_tutorial = request.GET.get('has_completed_tutorial')
-    if not username or not has_completed_tutorial:
-        return JsonResponse({"status": "error", "message": "username and has_completed_tutorial are required"},
+    if not has_completed_tutorial:
+        return JsonResponse({"status": "error", "message": "has_completed_tutorial are required"},
                             status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username)
-        user.has_completed_tutorial = has_completed_tutorial
-        user.save()
-        return JsonResponse({"status": "success", "message": "Tutorial status updated successfully"},
-                            status=status.HTTP_200_OK)
-    else:
-        return JsonResponse({"status": "error", "message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    user.has_completed_tutorial = has_completed_tutorial
+    user.save()
+    return JsonResponse({"status": "success", "message": "Tutorial status updated successfully"},
+                        status=status.HTTP_200_OK)
 
 
 @csrf_exempt
@@ -172,7 +169,7 @@ def update_user_tutorial(request):
 @permission_classes([IsAuthenticated])
 @require_user
 def get_user(request):
-    user = request.user
+    user = request.user_object
     serializer = UserSerializer(user)
     return JsonResponse({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
 

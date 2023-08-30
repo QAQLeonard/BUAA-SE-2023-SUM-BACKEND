@@ -9,11 +9,13 @@ from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from ProjectExecution.models import Project, Prototype
 from ProjectExecution.serializers import ProjectSerializer, PrototypeSerializer
+from ProjectExecution.views.decorators import require_prototype, require_project
 
 from TeamManagement.models import Team, TeamMember
 from threading import Lock
 
 lock = Lock()
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -49,19 +51,15 @@ def create_prototype(request):
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_prototype
 def update_prototype(request):
     with lock:
         data = request.data
-        print(data.get('prototype_id'))
-        try:
-            prototype = Prototype.objects.get(prototype_id=data.get('prototype_id'))
-        except ObjectDoesNotExist:
-            return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
+        prototype = request.prototype_object
         # Update fields
         for field in ['prototype_name', 'prototype_description', 'tag']:
             if field in data:
-                  setattr(prototype, field, data.get(field))
+                setattr(prototype, field, data.get(field))
 
         # Update the long string as a txt file if provided
         data_str = data.get("data_str", None)
@@ -86,14 +84,9 @@ def update_prototype(request):
 @api_view(['DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_prototype
 def delete_prototype(request):
-    prototype_id = request.data.get('prototype_id')
-
-    try:
-        prototype = Prototype.objects.get(prototype_id=prototype_id)
-    except ObjectDoesNotExist:
-        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
+    prototype = request.prototype_object
     # Soft delete by updating the tag to 'Deleted'
     if prototype.tag == 'Deleted':
         prototype.delete()
@@ -109,14 +102,9 @@ def delete_prototype(request):
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_prototype
 def restore_prototype(request):
-    prototype_id = request.data.get('prototype_id')
-
-    try:
-        prototype = Prototype.objects.get(prototype_id=prototype_id)
-    except ObjectDoesNotExist:
-        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
+    prototype = request.prototype_object
     if prototype.tag != 'Deleted':
         return Response({"status": "error", "message": "Prototype is not deleted"}, status=status.HTTP_400_BAD_REQUEST)
     # Restore the prototype by updating the tag to 'Normal'
@@ -124,21 +112,14 @@ def restore_prototype(request):
     prototype.save()
     return Response({"status": "success", "message": "Prototype Restored"}, status=status.HTTP_200_OK)
 
+
 # @csrf_exempt
 # @api_view(['GET'])
 # @authentication_classes([TokenAuthentication])
 # @permission_classes([IsAuthenticated])
+# @require_prototype
 # def get_prototype_file(request):
-#     prototype_id = request.GET.get('prototype_id', None)
-#
-#     if not prototype_id:
-#         return Response({"status": "error", "message": "prototype_id parameter is required"},
-#                         status=status.HTTP_400_BAD_REQUEST)
-#
-#     try:
-#         prototype = Prototype.objects.get(prototype_id=prototype_id)
-#     except Prototype.DoesNotExist:
-#         return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_404_NOT_FOUND)
+#     prototype = request.prototype_object
 #
 #     if not prototype.prototype_data_file or not prototype.prototype_style_file:
 #         return Response({"status": "error", "message": "No prototype file found"}, status=status.HTTP_404_NOT_FOUND)
@@ -161,19 +142,14 @@ def restore_prototype(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_prototype
+@require_project
 def get_prototypes(request):
-    project_id = request.GET.get('project_id', None)
+    project = request.project_object
     tag = request.GET.get('tag', None)
-    if not project_id:
-        return Response({"status": "error", "message": "project_id parameter is required"},
-                        status=status.HTTP_400_BAD_REQUEST)
     if tag not in ['Normal', 'Deleted']:
         return Response({"status": "error", "message": "tag parameter is required or invalid"},
                         status=status.HTTP_400_BAD_REQUEST)
-    try:
-        project = Project.objects.get(project_id=project_id)
-    except Project.DoesNotExist:
-        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
     prototypes = Prototype.objects.filter(project=project, tag=tag)
 
@@ -185,16 +161,9 @@ def get_prototypes(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_prototype
 def get_prototype(request):
-    prototype_id = request.GET.get('prototype_id', None)
-    if not prototype_id:
-        return Response({"status": "error", "message": "prototype_id parameter is required"},
-                        status=status.HTTP_400_BAD_REQUEST)
-    try:
-        prototype = Prototype.objects.get(prototype_id=prototype_id)
-    except Prototype.DoesNotExist:
-        return Response({"status": "error", "message": "Prototype does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
+    prototype = request.prototype_object
     response_data = {
         'prototype_id': prototype.prototype_id,
         'prototype_name': prototype.prototype_name,
@@ -203,4 +172,3 @@ def get_prototype(request):
         'tag': prototype.tag,
     }
     return Response({"status": "success", "data": response_data}, status=status.HTTP_200_OK)
-

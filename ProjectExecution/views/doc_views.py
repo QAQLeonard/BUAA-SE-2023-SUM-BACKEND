@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from ProjectExecution.models import Project, Doc
 from ProjectExecution.serializers import ProjectSerializer
+from ProjectExecution.views import *
+from ProjectExecution.views.decorators import require_doc
 
 from TeamManagement.models import Team, TeamMember, User
 
@@ -16,13 +18,14 @@ from TeamManagement.models import Team, TeamMember, User
 # 创建文档
 @csrf_exempt
 @api_view(['POST'])
+@require_project
 def create_doc(request):
     doc_id = request.data.get('doc_id')
-    project_id = request.data.get('project_id')
+    project = request.project_object
     doc_name = request.data.get('doc_name')
 
     # 校验参数
-    if not doc_id or not project_id or not doc_name:
+    if not doc_id or not doc_name:
         print("Missing required fields")
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -30,11 +33,6 @@ def create_doc(request):
         print("Doc already exists")
         return JsonResponse({"status": "error", "message": "Doc already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
-    if not Project.objects.filter(project_id=project_id).exists():
-        print("Project does not exist")
-        return JsonResponse({"status": "error", "message": "Project does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    project = Project.objects.get(project_id=project_id)
 
     doc = Doc(doc_id=doc_id, project=project, doc_name=doc_name)
     doc.save()
@@ -43,15 +41,9 @@ def create_doc(request):
 
 @csrf_exempt
 @api_view(['DELETE'])
+@require_doc
 def delete_doc(request):
-    doc_id = request.GET.get('doc_id')
-    if not doc_id:
-        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    if not Doc.objects.filter(doc_id=doc_id).exists():
-        return JsonResponse({"status": "error", "message": "Doc does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    doc = Doc.objects.get(doc_id=doc_id)
+    doc = request.doc_object
     doc.delete()
     return JsonResponse({"status": "success", "message": "Document deleted"}, status=status.HTTP_200_OK)
 
@@ -61,73 +53,48 @@ def delete_doc(request):
 @api_view(['PUT'])
 def update_doc_permissions(request):
     editable_by_guests = request.data.get('editable_by_guests')
-    doc_id = request.data.get('doc_id')
-    if editable_by_guests is None or not doc_id:
+    doc = request.doc_object
+    if editable_by_guests is None:
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
-    if not Doc.objects.filter(doc_id=doc_id).exists():
-        return JsonResponse({"status": "error", "message": "Doc does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    doc = Doc.objects.get(doc_id=doc_id)
     doc.editable_by_guests = editable_by_guests
     doc.save()
-
     return JsonResponse({"status": "success", "message": "Document permissions updated"}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
 @api_view(['GET'])
+@require_doc
 def get_doc_permissions(request):
-    doc_id = request.GET.get('doc_id')
-    if not doc_id:
-        print("Missing doc_id parameter")
-        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    if not Doc.objects.filter(doc_id=doc_id).exists():
-        print("Doc does not exist")
-        return JsonResponse({"status": "error", "message": "Doc does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    doc = Doc.objects.get(doc_id=doc_id)
+    doc = request.doc_object
     ebg = doc.editable_by_guests
     username = request.GET.get('username')
-    if not username and not ebg:
-        print("You are not allowed to edit this doc")
-        return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
-                            status=status.HTTP_200_OK)
-    elif not username and ebg:
-        return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
-                            status=status.HTTP_200_OK)
-    if not User.objects.filter(username=username).exists():
-        return JsonResponse({"status": "error", "message": "User does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    user = User.objects.get(username=username)
-    team = doc.project.team
-    if not TeamMember.objects.filter(team=team, user=user).exists() and not ebg:
-        return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
-                            status=status.HTTP_200_OK)
+    if not username:
+        if not ebg:
+            print("You are not allowed to edit this doc")
+            return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
+                                status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
+                                status=status.HTTP_200_OK)
     else:
-        return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
-                            status=status.HTTP_200_OK)
+        user = User.objects.get(username=username)
+        team = doc.project.team
+        if not TeamMember.objects.filter(team=team, user=user).exists() and not ebg:
+            return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
+                                status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({"status": "success", "message": "You are allowed to edit this doc"},
+                                status=status.HTTP_200_OK)
 
 
 @csrf_exempt
 @api_view(['GET'])
+@require_project
 def get_project_docs(request):
-    project_id = request.GET.get('project_id')
-    if not project_id:
-        print("Missing project_id parameter")
-        return JsonResponse({"status": "error", "message": "Missing project_id parameter"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    try:
-        project = Project.objects.get(project_id=project_id)
-    except Project.DoesNotExist:
-        print("Project does not exist")
-        return JsonResponse({"status": "error", "message": "Project does not exist"},
-                            status=status.HTTP_404_NOT_FOUND)
-
+    project = request.project_object
     # 获取与特定项目相关的所有文档
     docs = Doc.objects.filter(project=project)
-
     # 将结果序列化为 JSON 格式
     doc_list = []
     for doc in docs:
@@ -142,34 +109,18 @@ def get_project_docs(request):
 
 @csrf_exempt
 @api_view(['GET'])
+@require_doc
 def get_doc_team_id(request):
-    doc_id = request.GET.get('doc_id')
-    if not doc_id:
-        print("Missing doc_id parameter")
-        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    if not Doc.objects.filter(doc_id=doc_id).exists():
-        print("Doc does not exist")
-        return JsonResponse({"status": "error", "message": "Doc does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    doc = Doc.objects.get(doc_id=doc_id)
+    doc = request.doc_object
     team = doc.project.team
     return JsonResponse({"status": "success", "team_id": team.team_id},
                         status=status.HTTP_200_OK)
 
 @csrf_exempt
 @api_view(['GET'])
+@require_doc
 def get_doc(request):
-    doc_id = request.GET.get('doc_id')
-    if not doc_id:
-        print("Missing doc_id parameter")
-        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    if not Doc.objects.filter(doc_id=doc_id).exists():
-        print("Doc does not exist")
-        return JsonResponse({"status": "error", "message": "Doc does not exist"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    doc = Doc.objects.get(doc_id=doc_id)
+    doc = request.doc_object
     team = doc.project.team
     response_data = {
         'doc_id': doc.doc_id,

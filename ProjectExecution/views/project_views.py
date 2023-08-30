@@ -10,8 +10,10 @@ from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from ProjectExecution.models import Project
 from ProjectExecution.serializers import ProjectSerializer
+from ProjectExecution.views.decorators import require_project
 
 from TeamManagement.models import Team, TeamMember
+from TeamManagement.views import require_team
 
 
 @csrf_exempt
@@ -68,17 +70,15 @@ def create_project(request):
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_project
+@require_team
 def update_project(request):
-    data = request.data
-    try:
-        project = Project.objects.get(project_id=data.get('project_id'))
-        team = Team.objects.get(team_id=data.get('team_id'))
-    except (Project.DoesNotExist, Team.DoesNotExist):
-        return Response({"status": "error", "message": "Project or Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    project = request.project_object
+    team = request.team_object
 
     # 更新数据
-    project.project_name = data.get('project_name', project.project_name)
-    project.project_description = data.get('project_description', project.project_description)
+    project.project_name = request.data.get('project_name', project.project_name)
+    project.project_description = request.data.get('project_description', project.project_description)
     project.team = team
 
     # 处理图片
@@ -101,13 +101,9 @@ def update_project(request):
 @api_view(['DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_project
 def delete_project(request):
-    project_id = request.data.get('project_id')
-
-    try:
-        project = Project.objects.get(project_id=project_id)
-    except Project.DoesNotExist:
-        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    project = request.project_object
     if project.tag == 'Deleted':
         if project.project_image:
             project.project_image.delete(save=False)
@@ -123,12 +119,9 @@ def delete_project(request):
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_project
 def restore_project(request):
-    project_id = request.data.get('project_id')
-    try:
-        project = Project.objects.get(project_id=project_id)
-    except Project.DoesNotExist:
-        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    project = request.project_object
     if project.tag != 'Deleted':
         return Response({"status": "error", "message": "Project is not deleted"}, status=status.HTTP_400_BAD_REQUEST)
     project.tag = 'Normal'
@@ -140,15 +133,12 @@ def restore_project(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
 def get_team_projects(request):
-    team_id = request.GET.get('team_id')
+    team = request.team_object
     tag = request.GET.get('tag')
-    try:
-        team = Team.objects.get(team_id=team_id)
-    except Team.DoesNotExist:
-        return Response({"status": "error", "message": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-
     # 验证请求用户是否为团队成员
+
     try:
         team_membership = TeamMember.objects.get(team=team, user=request.user)
     except TeamMember.DoesNotExist:
@@ -167,14 +157,9 @@ def get_team_projects(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_project
 def get_project(request):
-    project_id = request.GET.get('project_id')
-    if not project_id:
-        return Response({"status": "error", "message": "Project ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        project = Project.objects.get(project_id=project_id)
-    except Project.DoesNotExist:
-        return Response({"status": "error", "message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+    project = request.project_object
     response_data = {
         "project_id": project.project_id,
         "project_name": project.project_name,

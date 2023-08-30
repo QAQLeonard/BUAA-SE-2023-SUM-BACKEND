@@ -7,6 +7,8 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 import json
 from TeamManagement.serializers import *
+from TeamManagement.views.decorators import *
+from shared.decorators import *
 from shared.utils.TeamManage.users import *
 
 
@@ -29,16 +31,9 @@ class TeamMemberCURDViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
 def get_team_members(request):
-    team_id = request.GET.get('team_id')  # Retrieve the team_id from the query parameters
-
-    if not team_id:
-        return JsonResponse({"status": "error", "message": "team_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        team = Team.objects.get(team_id=team_id)  # Retrieve the Team object based on the team_id
-    except Team.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+    team = request.team_object
 
     members = TeamMember.objects.filter(team=team)  # Query TeamMember objects using the Team object
 
@@ -102,56 +97,22 @@ def create_team(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
+@require_user
 def add_team_member(request):
-    # 获取前端传入的JSON数据
-    data = request.data
-
     # 获取通过Token验证的当前用户
     current_user = request.user
-
-    # 获取团队ID和要添加的成员信息（电子邮件或用户名）
-    team_id = data.get('team_id')
-    email = data.get('email')
-    username = data.get('username')
-
-    # 验证数据完整性
-    if not team_id or not (email or username):
-        print(team_id, email, username)
-        return JsonResponse({"status": "error", "message": "Incomplete data"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # 查找团队
-    try:
-        team = Team.objects.get(team_id=team_id)
-    except Team.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+    team = request.team_object
+    user_to_add = request.user_object
 
     # 检查当前用户是否为团队成员
-    is_member = TeamMember.objects.filter(team=team, user=current_user).exists()
-    if not is_member:
+    if not TeamMember.objects.filter(team=team, user=current_user).exists():
         return JsonResponse({"status": "error", "message": "You are not a member of this team"},
                             status=status.HTTP_403_FORBIDDEN)
-
-    # 查找要添加的用户
-    user_to_add = None
-    if email:
-        try:
-            user_to_add = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "User with this email not found"},
-                                status=status.HTTP_404_NOT_FOUND)
-    elif username:
-        try:
-            user_to_add = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "User with this username not found"},
-                                status=status.HTTP_404_NOT_FOUND)
-
     # 检查用户是否已是团队成员
-    already_member = TeamMember.objects.filter(team=team, user=user_to_add).exists()
-    if already_member:
+    if TeamMember.objects.filter(team=team, user=user_to_add).exists():
         return JsonResponse({"status": "error", "message": "User is already a member of this team"},
                             status=status.HTTP_400_BAD_REQUEST)
-
     # 添加用户到团队
     TeamMember.objects.create(team=team, user=user_to_add)
     GroupMember.objects.create(group=ChatGroup.objects.get(team=team), user=user_to_add)
@@ -164,33 +125,14 @@ def add_team_member(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
+@require_user
 def remove_team_member(request):
-    # 获取前端传入的JSON数据
-    data = request.data
-
     # 获取通过Token验证的当前用户
     current_user = request.user
-
     # 获取团队ID和要删除的成员用户名
-    team_id = data.get('team_id')
-    username_to_remove = data.get('username')
-
-    # 验证数据完整性
-    if not team_id or not username_to_remove:
-        return JsonResponse({"status": "error", "message": "Incomplete data"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # 查找团队
-    try:
-        team = Team.objects.get(team_id=team_id)
-    except Team.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    # 查找要删除的用户
-    try:
-        user_to_remove = User.objects.get(username=username_to_remove)
-    except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User to remove not found"},
-                            status=status.HTTP_404_NOT_FOUND)
+    team = request.team_object
+    user_to_remove = request.user_object
 
     # 获取当前用户和要删除用户的团队成员信息
     try:
@@ -199,7 +141,6 @@ def remove_team_member(request):
     except TeamMember.DoesNotExist:
         return JsonResponse({"status": "error", "message": "One or both users are not members of this team"},
                             status=status.HTTP_404_NOT_FOUND)
-
     # 检查删除权限
     if current_team_member.role == 'Creator':
         if team_member_to_remove.role == 'Creator':
@@ -226,32 +167,11 @@ def remove_team_member(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
+@require_user
 def get_user_role_in_team(request):
-    team_id = request.GET.get('team_id')
-    username = request.GET.get('username')
-
-    if not team_id or not username:
-        return JsonResponse(
-            {"status": "error", "message": "Both team_id and username are required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        team = Team.objects.get(team_id=team_id)
-    except Team.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "Team not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "User not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
+    team = request.team_object
+    user = request.user_object
     try:
         team_member = TeamMember.objects.get(team=team, user=user)
         role = team_member.role
@@ -269,26 +189,18 @@ def get_user_role_in_team(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def set_team_member_role(request):
-    data = request.data
     current_user = request.user
 
-    team_id = data.get('team_id')
-    target_username = data.get('username')
-    new_role = data.get('role')
+    team = request.team_object
+    target_user = request.user_object
+    new_role = request.data.get('role')
 
     # Verify the data
-    if not all([team_id, target_username, new_role]):
+    if not new_role:
         return JsonResponse({"status": "error", "message": "Incomplete data"}, status=status.HTTP_400_BAD_REQUEST)
-
     # Make sure the new role is either 'Admin' or 'Member'
     if new_role not in ['Admin', 'Member']:
         return JsonResponse({"status": "error", "message": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Verify the team exists
-    try:
-        team = Team.objects.get(team_id=team_id)
-    except Team.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
 
     # Check if the current user is an admin or the creator of the team
     try:
@@ -302,7 +214,7 @@ def set_team_member_role(request):
 
     # Get the target member
     try:
-        target_member = TeamMember.objects.get(team=team, user__username=target_username)
+        target_member = TeamMember.objects.get(team=team, user=target_user)
     except TeamMember.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Target member not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -325,18 +237,9 @@ def set_team_member_role(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def get_teams(request):
-    username = request.GET.get('username', None)
-
-    if username is None:
-        return JsonResponse({"status": "error", "message": "Username parameter is missing"},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found"},
-                            status=status.HTTP_404_NOT_FOUND)
+@require_user
+def get_user_teams(request):
+    user = request.user_object
 
     # 从TeamMember模型中获取该用户所有的团队信息
     team_memberships = TeamMember.objects.filter(user=user)
@@ -356,19 +259,8 @@ def get_teams(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
 def get_team(request):
-    team_id = request.GET.get('team_id')
-
-    if team_id is None:
-        return JsonResponse({"status": "error", "message": "team_id parameter is required"},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        team = Team.objects.get(team_id=team_id)
-    except Team.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Team not found"},
-                            status=status.HTTP_404_NOT_FOUND)
-
+    team = request.team_object
     serializer = TeamSerializer(team)
-
     return JsonResponse({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)

@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from TeamManagement.models import Message, User, ChatGroup, GroupMember
 from TeamManagement.views.decorators import require_group
+from shared.decorators import require_user
 
 
 @csrf_exempt  # 注意：在生产环境中，你应该使用更安全的方法来处理 CSRF。
@@ -49,20 +50,12 @@ def save_message(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_user
 def get_groups(request):
-    username = request.GET.get('username')
-    if not username:
-        return JsonResponse({'status': 'error', 'message': 'Missing required fields'})
-
-    # 获取用户对象
-    user = User.objects.get(username=username)
-    if not user:
-        return JsonResponse({'status': 'error', 'message': 'User does not exist'})
-    # 获取用户所在的所有群组
+    user = request.user_object
     group_members = GroupMember.objects.filter(user=user)
     groups = [gm.group for gm in group_members]
 
-    # 将群组信息序列化为 JSON 格式
     data = []
     for group in groups:
         data.append({
@@ -81,7 +74,7 @@ def get_groups(request):
 @permission_classes([IsAuthenticated])
 @require_group
 def get_group_messages(request):
-    messages = Message.objects.filter(group=request.group).order_by('timestamp')
+    messages = Message.objects.filter(group=request.group_object).order_by('timestamp')
     messages_list = []
     for message in messages:
         messages_list.append({
@@ -101,7 +94,7 @@ def get_group_messages(request):
 @permission_classes([IsAuthenticated])
 @require_group
 def get_group_members(request):
-    members = GroupMember.objects.filter(group=request.group)
+    members = GroupMember.objects.filter(group=request.group_object)
     members_list = []
     for member in members:
         members_list.append({
