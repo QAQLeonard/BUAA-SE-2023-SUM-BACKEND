@@ -96,7 +96,7 @@ def get_group_messages(request):
     for message in messages:
         messages_list.append({
             'message_id': message.message_id,
-            'sender': message.sender.username,  # Assuming User model has a 'username' field
+            'sender_uname': message.sender.username,  # Assuming User model has a 'username' field
             'content': message.content,
             'timestamp': message.timestamp,
             'message_type': message.message_type
