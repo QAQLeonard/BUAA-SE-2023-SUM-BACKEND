@@ -1,4 +1,6 @@
+import pytz
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
@@ -32,13 +34,18 @@ def create_project(request):
     except Team.DoesNotExist:
         return Response({"status": "error", "message": "Team does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
+    current_time_utc = timezone.now()
+    local_timezone = pytz.timezone('Asia/Shanghai')
+    current_time_local = current_time_utc.astimezone(local_timezone)
+    created_at = current_time_local
     # 使用获取的数据创建新的Project对象
     project = Project(
         project_id=project_id,
         project_name=project_name,
         project_description=project_description,
         team=team,
-        project_image=project_image
+        project_image=project_image,
+        created_at=created_at
     )
 
     # 保存Project对象到数据库
@@ -149,8 +156,9 @@ def get_team_projects(request):
                         status=status.HTTP_403_FORBIDDEN)
 
     # 获取并返回该团队的所有项目
-    projects = Project.objects.filter(team=team, tag=tag)
-    project_data = [{"project_id": project.project_id, "project_name": project.project_name} for project in projects]
+    projects = Project.objects.filter(team=team, tag=tag).order_by('-created_at')
+    project_data = [{"project_id": project.project_id, "project_name": project.project_name,
+                     "created_at": project.created_at} for project in projects]
 
     return Response({"status": "success", "projects": project_data}, status=status.HTTP_200_OK)
 
@@ -173,5 +181,6 @@ def get_project(request):
         "project_description": project.project_description,
         "team_id": project.team.team_id,
         "tag": project.tag,
+        "created_at": project.created_at,
     }
     return Response({"status": "success", "project": response_data}, status=status.HTTP_200_OK)

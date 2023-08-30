@@ -1,6 +1,10 @@
+
+
 from django.db import models
 
 # Create your models here.
+from django.utils import timezone
+
 from TeamManagement.models import *
 
 
@@ -15,6 +19,8 @@ class Project(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     project_image = models.ImageField(upload_to='project_images/', null=True, blank=True)
     tag = models.CharField(max_length=255, choices=TAG_CHOICES, default='Normal')
+    created_at = models.DateTimeField(null=True)
+
     class Meta:
         db_table = 'Projects'
 
