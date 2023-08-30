@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 
 from TeamManagement.models import Message, User, ChatGroup, GroupMember
+from TeamManagement.views.decorators.chat_decorators import require_group
 
 
 @csrf_exempt  # 注意：在生产环境中，你应该使用更安全的方法来处理 CSRF。
@@ -103,3 +104,21 @@ def get_group_messages(request):
         })
 
     return JsonResponse({'status': 'success', 'data': messages_list}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_group
+def get_group_members(request):
+    members = GroupMember.objects.filter(group=request.group)
+
+    members_list = []
+    for member in members:
+        members_list.append({
+            'username': member.user.username,
+            'email': member.user.email,
+        })
+
+    return JsonResponse({'status': 'success', 'data': members_list}, status=status.HTTP_200_OK)
