@@ -15,6 +15,8 @@ urlpatterns = [
     path('verification', user_views.get_verification_code),
     path('update_user', user_views.update_user),
     path('get_user', user_views.get_user),
+    path('update_user_tutorial', user_views.update_user_tutorial),
+
     path('create_team', team_views.create_team),
     path('add_team_member', team_views.add_team_member),
     path('remove_team_member', team_views.remove_team_member),

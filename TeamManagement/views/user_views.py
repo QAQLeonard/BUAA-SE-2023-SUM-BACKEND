@@ -146,6 +146,24 @@ def update_user(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def update_user_tutorial(request):
+    username = request.GET.get('username')
+    has_completed_tutorial = request.GET.get('has_completed_tutorial')
+    if not username or not has_completed_tutorial:
+        return JsonResponse({"status": "error", "message": "username and has_completed_tutorial are required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+        user.has_completed_tutorial = has_completed_tutorial
+        user.save()
+        return JsonResponse({"status": "success", "message": "Tutorial status updated successfully"},
+                            status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({"status": "error", "message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
 @csrf_exempt
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])

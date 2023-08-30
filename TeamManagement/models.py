@@ -9,6 +9,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=30, unique=True, primary_key=True)
     real_name = models.CharField(max_length=255)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    has_completed_tutorial = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'Users'
