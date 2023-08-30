@@ -156,3 +156,26 @@ def get_doc_team_id(request):
     team = doc.project.team
     return JsonResponse({"status": "success", "team_id": team.team_id},
                         status=status.HTTP_200_OK)
+
+@csrf_exempt
+@api_view(['GET'])
+def get_doc(request):
+    doc_id = request.GET.get('doc_id')
+    if not doc_id:
+        print("Missing doc_id parameter")
+        return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    if not Doc.objects.filter(doc_id=doc_id).exists():
+        print("Doc does not exist")
+        return JsonResponse({"status": "error", "message": "Doc does not exist"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    doc = Doc.objects.get(doc_id=doc_id)
+    team = doc.project.team
+    response_data = {
+        'doc_id': doc.doc_id,
+        'doc_name': doc.doc_name,
+        'project_id': doc.project.project_id,
+        'team_id': team.team_id,
+        'editable_by_guests': doc.editable_by_guests,
+    }
+    return JsonResponse({"status": "success", "data": response_data}, status=status.HTTP_200_OK)
