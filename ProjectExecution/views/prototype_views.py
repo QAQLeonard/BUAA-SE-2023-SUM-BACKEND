@@ -64,13 +64,17 @@ def update_prototype(request):
     data_str = data.get("data_str", None)
     style_str = data.get("style_str", None)
     if data_str is not None:
-        # Delete the old file
         prototype.prototype_data_file.delete(save=False)
-        prototype.prototype_data_file.save(f"{prototype.prototype_id}_data.txt", ContentFile(data_str))
+        new_data_file = ContentFile(data_str)
+        new_data_file.name = f"{prototype.prototype_id}_data.txt"
+        prototype.prototype_data_file.save(new_data_file.name, new_data_file)
+        prototype.save()
     if style_str is not None:
-        # Delete the old file
         prototype.prototype_style_file.delete(save=False)
-        prototype.prototype_style_file.save(f"{prototype.prototype_id}_style.txt", ContentFile(style_str))
+        new_style_file = ContentFile(style_str)
+        new_style_file.name = f"{prototype.prototype_id}_style.txt"
+        prototype.prototype_style_file.save(new_style_file.name, new_style_file)
+        prototype.save()
 
     prototype.save()
 
