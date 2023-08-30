@@ -92,10 +92,6 @@ def get_group_messages(request):
 
     messages = Message.objects.filter(group=group).order_by('timestamp')
 
-    if not messages:
-        return JsonResponse({'status': 'error', 'message': 'No messages found'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
     messages_list = []
     for message in messages:
         messages_list.append({
