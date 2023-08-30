@@ -1,3 +1,4 @@
+//WebsocketConfig.java
 package top.leonardsaikou.sesum2023backendwebsocket.config;
 
 import org.springframework.context.annotation.Configuration;
