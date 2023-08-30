@@ -22,12 +22,15 @@ def create_doc(request):
 
     # 校验参数
     if not doc_id or not project_id:
+        print("Missing required fields")
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
     if Doc.objects.filter(doc_id=doc_id).exists():
+        print("Doc already exists")
         return JsonResponse({"status": "error", "message": "Doc already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
     if not Project.objects.filter(project_id=project_id).exists():
+        print("Project does not exist")
         return JsonResponse({"status": "error", "message": "Project does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
     project = Project.objects.get(project_id=project_id)
@@ -76,15 +79,18 @@ def update_doc_permissions(request):
 def get_doc_permissions(request):
     doc_id = request.GET.get('doc_id')
     if not doc_id:
+        print("Missing doc_id parameter")
         return JsonResponse({"status": "error", "message": "Missing doc_id parameter"},
                             status=status.HTTP_400_BAD_REQUEST)
     if not Doc.objects.filter(doc_id=doc_id).exists():
+        print("Doc does not exist")
         return JsonResponse({"status": "error", "message": "Doc does not exist"},
                             status=status.HTTP_400_BAD_REQUEST)
     doc = Doc.objects.get(doc_id=doc_id)
     ebg = doc.editable_by_guests
     username = request.GET.get('username')
     if not username and not ebg:
+        print("You are not allowed to edit this doc")
         return JsonResponse({"status": "error", "message": "You are not allowed to edit this doc"},
                             status=status.HTTP_200_OK)
     elif not username and ebg:
@@ -108,11 +114,13 @@ def get_doc_permissions(request):
 def get_project_docs(request):
     project_id = request.GET.get('project_id')
     if not project_id:
+        print("Missing project_id parameter")
         return JsonResponse({"status": "error", "message": "Missing project_id parameter"},
                             status=status.HTTP_400_BAD_REQUEST)
     try:
         project = Project.objects.get(project_id=project_id)
     except Project.DoesNotExist:
+        print("Project does not exist")
         return JsonResponse({"status": "error", "message": "Project does not exist"},
                             status=status.HTTP_404_NOT_FOUND)
 
