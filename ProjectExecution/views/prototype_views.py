@@ -49,7 +49,7 @@ def create_prototype(request):
 @permission_classes([IsAuthenticated])
 def update_prototype(request):
     data = request.data
-    print(data)
+    print(data.get('prototype_id'))
     try:
         prototype = Prototype.objects.get(prototype_id=data.get('prototype_id'))
     except ObjectDoesNotExist:
