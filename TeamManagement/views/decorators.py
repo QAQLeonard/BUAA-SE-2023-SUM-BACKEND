@@ -19,3 +19,20 @@ def require_group(view_func):
         request.group = group  # Attach group to request object so that it's available in the view
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def require_team(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        team_id = request.GET.get('team_id')
+        if not team_id:
+            return JsonResponse({'status': 'error', 'message': 'Missing team_id parameter'}, status=400)
+
+        try:
+            team = Team.objects.get(team_id=team_id)
+        except Team.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Team does not exist'}, status=404)
+
+        request.team = team  # Attach team to request object so that it's available in the view
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view

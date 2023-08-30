@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 
 from TeamManagement.models import Message, User, ChatGroup, GroupMember
-from TeamManagement.views.decorators.chat_decorators import require_group
+from TeamManagement.views.decorators import require_group
 
 
 @csrf_exempt  # 注意：在生产环境中，你应该使用更安全的方法来处理 CSRF。
@@ -79,20 +79,9 @@ def get_groups(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_group
 def get_group_messages(request):
-    group_id = request.GET.get('group_id')
-    if not group_id:
-        return JsonResponse({'status': 'error', 'message': 'Missing group_id parameter'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        group = ChatGroup.objects.get(group_id=group_id)
-    except ChatGroup.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'ChatGroup does not exist'},
-                            status=status.HTTP_404_NOT_FOUND)
-
-    messages = Message.objects.filter(group=group).order_by('timestamp')
-
+    messages = Message.objects.filter(group=request.group).order_by('timestamp')
     messages_list = []
     for message in messages:
         messages_list.append({
@@ -113,7 +102,6 @@ def get_group_messages(request):
 @require_group
 def get_group_members(request):
     members = GroupMember.objects.filter(group=request.group)
-
     members_list = []
     for member in members:
         members_list.append({

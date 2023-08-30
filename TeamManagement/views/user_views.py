@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 import random
 import json
 from TeamManagement.serializers import *
+from shared.decorators import require_user
 from shared.utils.TeamManage.users import *
 from shared.utils.email import send_email
 
@@ -169,25 +170,9 @@ def update_user_tutorial(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_user
 def get_user(request):
-    username = request.GET.get('username')
-    email = request.GET.get('email')
-
-    query = Q()
-    if username:
-        query |= Q(username=username)
-    if email:
-        query |= Q(email=email)
-
-    if not query:
-        return JsonResponse({"status": "error", "message": "At least one parameter is required"},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    user = User.objects.get(query)
-
-    if not user:
-        return JsonResponse({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
+    user = request.user
     serializer = UserSerializer(user)
     return JsonResponse({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
 
