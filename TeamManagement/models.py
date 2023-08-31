@@ -61,7 +61,7 @@ class ChatGroup(models.Model):
     ]
     group_id = models.CharField(max_length=60, primary_key=True)
     group_name = models.CharField(max_length=255)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
     group_type = models.CharField(max_length=255, choices=GROUP_TYPE_CHOICES, default='Team')
 
     class Meta:
