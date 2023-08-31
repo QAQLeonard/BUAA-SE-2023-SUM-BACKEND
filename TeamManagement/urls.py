@@ -27,7 +27,7 @@ urlpatterns = [
     path('get_team', team_views.get_team),
     path('upload_avatar', user_views.set_user_avatar),
 
-    path('create_group', chat_views.create_group),
+    path('create_public_group', chat_views.create_public_group),
     path('create_private_chat', chat_views.create_private_chat),
     path('save_message', chat_views.save_message),
     path('get_groups', chat_views.get_groups),

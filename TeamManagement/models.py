@@ -72,8 +72,14 @@ class ChatGroup(models.Model):
 
 
 class GroupMember(models.Model):
+    ROLE_TYPE_CHOICES = [
+        ('Creator', 'Creator'),
+        ('Admin', 'Admin'),
+        ('Member', 'Member'),
+    ]
     group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=255, default='Member')
 
     class Meta:
         db_table = 'GroupMembers'

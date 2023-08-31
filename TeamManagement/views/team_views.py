@@ -87,7 +87,7 @@ def create_team(request):
     user = request.user
     team_member = TeamMember(team=team, user=user, role='Creator')
     team_member.save()
-    group_member = GroupMember(group=group, user=user)
+    group_member = GroupMember(group=group, user=user, role='Creator')
     group_member.save()
 
     return JsonResponse({'status': 'success'}, status=status.HTTP_201_CREATED)
@@ -227,7 +227,10 @@ def set_team_member_role(request):
                             status=status.HTTP_403_FORBIDDEN)
     # Update the role
     target_member.role = new_role
+    target_group_member = GroupMember.objects.get(group=ChatGroup.objects.get(team=team), user=target_user)
+    target_group_member.role = new_role
     target_member.save()
+    target_group_member.save()
 
     return JsonResponse({"status": "success", "message": f"Successfully updated role to {new_role}"},
                         status=status.HTTP_200_OK)

@@ -1,4 +1,6 @@
 import json
+import uuid
+
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -16,24 +18,25 @@ from shared.decorators import require_user, require_team
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-@require_team
-def create_group(request):
+def create_public_group(request):
+    group_id = str(uuid.uuid4())
     data = request.data
     group_name = data.get('group_name')
-    group_type = data.get('group_type')
-    team = request.team_object
-    if not all([group_name, group_type]):
+    if not group_name:
         return JsonResponse({"status": "error", "message": "Missing required fields"})
+
     group = ChatGroup(
+        group_id=group_id,
         group_name=group_name,
-        group_type=group_type,
-        team=team
+        group_type='Public',
+        team=None
     )
     group.save()
     # Add the creator to the group
     group_member = GroupMember(
         group=group,
-        user=request.user
+        user=request.user,
+        role='Creator'
     )
     group_member.save()
     return JsonResponse({'status': 'success', "message": "Group created successfully"})
@@ -173,6 +176,7 @@ def get_group_members(request):
         members_list.append({
             'username': member.user.username,
             'email': member.user.email,
+            'role': member.role
         })
 
     return JsonResponse({'status': 'success', 'data': members_list}, status=status.HTTP_200_OK)
