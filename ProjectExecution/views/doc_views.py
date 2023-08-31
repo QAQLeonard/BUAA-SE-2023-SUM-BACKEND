@@ -53,13 +53,12 @@ def delete_doc(request):
 @api_view(['PUT'])
 @require_doc
 def update_doc(request):
-    editable_by_guests = request.data.get('editable_by_guests')
     doc_name = request.data.get('doc_name')
     doc = request.doc_object
-    if editable_by_guests:
-        doc.editable_by_guests = editable_by_guests
     if doc_name:
         doc.doc_name = doc_name
+    else:
+        doc.editable_by_guests = not doc.editable_by_guests
     doc.save()
     return JsonResponse({"status": "success", "message": "Document permissions updated"}, status=status.HTTP_200_OK)
 

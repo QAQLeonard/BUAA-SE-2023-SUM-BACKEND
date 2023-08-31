@@ -32,3 +32,8 @@ class TeamMemberTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamMember
         fields = ('team', 'role')
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'

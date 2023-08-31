@@ -180,7 +180,6 @@ def get_user_role_in_team(request):
             {"status": "error", "message": "User is not a member of this team"},
             status=status.HTTP_404_NOT_FOUND
         )
-
     return JsonResponse({"status": "success", "role": role}, status=status.HTTP_200_OK)
 
 
