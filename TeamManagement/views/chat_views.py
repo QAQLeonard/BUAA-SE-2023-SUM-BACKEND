@@ -113,10 +113,16 @@ def create_private_chat(request):
     # Create a new private chat
     usernames = sorted([creator.username, dest_user.username])
     if ChatGroup.objects.filter(group_id=f"private_chat_{usernames[0]}_{usernames[1]}").exists():
+        private_group = ChatGroup.objects.get(group_id=f"private_chat_{usernames[0]}_{usernames[1]}")
+        group_data = {
+            "group_id": private_group.group_id,
+            "group_name": private_group.group_name,
+            "group_type": private_group.group_type,
+        }
         return JsonResponse({
             "status": "error",
             "message": "Private chat already exists",
-            "group_id": f"private_chat_{usernames[0]}_{usernames[1]}"
+            "data": group_data,
         })
 
     new_group = ChatGroup.objects.create(
