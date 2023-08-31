@@ -30,7 +30,8 @@ urlpatterns = [
     path('create_public_group', chat_views.create_public_group),
     path('create_private_chat', chat_views.create_private_chat),
     path('save_message', chat_views.save_message),
-    path('get_groups', chat_views.get_groups),
+    path('get_group', chat_views.get_group),
+    path('get_user_groups', chat_views.get_user_groups),
     path('get_messages', chat_views.get_group_messages),
     path('get_group_members', chat_views.get_group_members),
 ]

@@ -8,10 +8,50 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
+import re
 
+from NotificationCenter.models import Notification
 from TeamManagement.models import *
 from TeamManagement.views.decorators import require_group
 from shared.decorators import require_user, require_team
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_user
+def get_group(request):
+    group = request.group_object
+    if group.group_type == 'Team':
+        return JsonResponse({
+            "status": "success",
+            "data": {
+                "group_id": group.group_id,
+                "group_name": group.group_name,
+                "group_type": group.group_type,
+                "team_id": group.team.team_id,
+            }
+        })
+    elif group.group_type == 'Public':
+        return JsonResponse({
+            "status": "success",
+            "data": {
+                "group_id": group.group_id,
+                "group_name": group.group_name,
+                "group_type": group.group_type,
+            }
+        })
+    elif group.group_type == 'Private':
+        partner_name = group.group_id.replace(request.user_object.username, '').replace('private_chat_', '').replace('_', '')
+        return JsonResponse({
+            "status": "success",
+            "data": {
+                "group_id": group.group_id,
+                "group_name": partner_name,
+                "group_type": group.group_type,
+            }
+        })
 
 
 @csrf_exempt
@@ -117,6 +157,19 @@ def save_message(request):
         )
         message.save()
 
+        pattern = r'\/@\/(\w+)\s'
+        mentioned_usernames = re.findall(pattern, content)
+        if mentioned_usernames:
+            for username in mentioned_usernames:
+                if User.objects.filter(username=username).exists():
+                    mentioned_user = User.objects.get(username=username)
+                    Notification.objects.create(
+                        user=mentioned_user,
+                        notification_type='group_chat',
+                        message=message,
+                        content=f"你被 {sender_uname} 提及了",
+                    )
+
         return JsonResponse({'status': 'success', "message": "Message saved successfully"})
 
     except json.JSONDecodeError:
@@ -131,7 +184,7 @@ def save_message(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @require_user
-def get_groups(request):
+def get_user_groups(request):
     user = request.user_object
     group_members = GroupMember.objects.filter(user=user)
     groups = [gm.group for gm in group_members]
@@ -198,3 +251,16 @@ def get_group_members(request):
         })
 
     return JsonResponse({'status': 'success', 'data': members_list}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_group
+def delete_group(request):
+    group = request.group_object
+    if group.group_type == 'Team':
+        return JsonResponse({'status': 'error', 'message': 'Cannot delete team group'}, status=status.HTTP_403_FORBIDDEN)
+    group.delete()
+    return JsonResponse({'status': 'success', 'message': 'Group deleted successfully'}, status=status.HTTP_200_OK)
