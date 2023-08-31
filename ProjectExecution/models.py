@@ -1,11 +1,5 @@
-
-
 from django.db import models
-
-# Create your models here.
-from django.utils import timezone
-
-from TeamManagement.models import *
+from TeamManagement.models import Team, User, Message
 
 
 class Project(models.Model):
@@ -60,3 +54,4 @@ class Doc(models.Model):
 
     def __str__(self):
         return self.doc_id
+

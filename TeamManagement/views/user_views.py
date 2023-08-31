@@ -12,9 +12,11 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 import random
 import json
-from TeamManagement.serializers import *
+
+from TeamManagement.models import User, VerificationCode
+from TeamManagement.serializers import UserSerializer
 from shared.decorators import require_user
-from shared.utils.TeamManage.users import *
+from shared.utils.TeamManage.users import get_user_by_username, get_user_by_email
 from shared.utils.email import send_email
 import shutil
 import os
@@ -87,7 +89,6 @@ def register(request):
     new_file = ContentFile(avatar_content)
     new_file.name = new_filename
     new_user.avatar.save(new_filename, new_file, save=True)
-
 
     return JsonResponse({"status": "success", "message": "User successfully registered"},
                         status=status.HTTP_201_CREATED)
