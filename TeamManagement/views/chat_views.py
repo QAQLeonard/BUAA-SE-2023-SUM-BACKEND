@@ -152,7 +152,7 @@ def get_groups(request):
                 'group_type': group.group_type,
             })
         elif group.group_type == 'Private':
-            partner_name = group.group_name.replace(user.username, '').replace('private_chat_', '').replace('_', '')
+            partner_name = group.group_id.replace(user.username, '').replace('private_chat_', '').replace('_', '')
             data.append({
                 'group_id': group.group_id,
                 'group_name': partner_name,
