@@ -20,7 +20,7 @@ from shared.decorators import require_user, require_team
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-@require_user
+@require_group
 def get_group(request):
     group = request.group_object
     if group.group_type == 'Team':
