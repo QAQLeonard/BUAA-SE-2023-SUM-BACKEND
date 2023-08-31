@@ -228,4 +228,4 @@ def copy_project(request):
             new_prototype.prototype_style_file.delete(save=False)
             new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
 
-
+    return Response({"status": "success", "message": "Project Copied"}, status=status.HTTP_201_CREATED)
