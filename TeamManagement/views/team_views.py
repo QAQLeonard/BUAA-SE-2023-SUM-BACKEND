@@ -75,7 +75,7 @@ def create_team(request):
     if team.exists():
         return JsonResponse({"status": "error", "message": "Team already exists"}, status=status.HTTP_409_CONFLICT)
 
-    team = Team(team_id=team_id, team_name=team_name, team_description=team_description)
+    team = Team(team_id=team_id, team_name=team_name, team_description=team_description, tag='Team')
     team.save()
 
     # 创建默认群聊

@@ -7,12 +7,85 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from TeamManagement.models import Message, User, ChatGroup, GroupMember
+from TeamManagement.models import *
 from TeamManagement.views.decorators import require_group
-from shared.decorators import require_user
+from shared.decorators import require_user, require_team
 
 
-@csrf_exempt  # 注意：在生产环境中，你应该使用更安全的方法来处理 CSRF。
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_team
+def create_group(request):
+    data = request.data
+    group_name = data.get('group_name')
+    group_type = data.get('group_type')
+    team = request.team_object
+    if not all([group_name, group_type]):
+        return JsonResponse({"status": "error", "message": "Missing required fields"})
+    group = ChatGroup(
+        group_name=group_name,
+        group_type=group_type,
+        team=team
+    )
+    group.save()
+    # Add the creator to the group
+    group_member = GroupMember(
+        group=group,
+        user=request.user
+    )
+    group_member.save()
+    return JsonResponse({'status': 'success', "message": "Group created successfully"})
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_user
+def create_private_chat(request):
+    creator = request.user
+    dest_user = request.user_object
+    if creator == dest_user:
+        return JsonResponse({"status": "error", "message": "You cannot create a private chat with yourself"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    # Check if the private chat already exists
+    # existing_groups = ChatGroup.objects.filter(group_type='Private')
+    # for group in existing_groups:
+    #     if GroupMember.objects.filter(group=group, user=creator).exists() and \
+    #             GroupMember.objects.filter(group=group, user=dest_user).exists():
+    #         return JsonResponse({
+    #             "status": "error",
+    #             "message": "Private chat already exists"
+    #             "group_id":
+    #
+    #         })
+    # Create a new private chat
+    usernames = sorted([creator.username, dest_user.username])
+    if ChatGroup.objects.filter(group_id=f"private_chat_{usernames[0]}_{usernames[1]}").exists():
+        return JsonResponse({
+            "status": "error",
+            "message": "Private chat already exists",
+            "group_id": f"private_chat_{usernames[0]}_{usernames[1]}"
+        })
+
+    new_group = ChatGroup.objects.create(
+        group_id=f"private_chat_{usernames[0]}_{usernames[1]}",
+        group_name=f"{creator.username} and {dest_user.username}",
+        group_type='Private',
+        team=None
+    )
+    GroupMember.objects.create(group=new_group, user=creator)
+    GroupMember.objects.create(group=new_group, user=dest_user)
+    return JsonResponse({
+        "status": "success",
+        "message": "Private chat created successfully",
+        "group_id": new_group.group_id,
+    })
+
+
+@csrf_exempt
 @api_view(['POST'])
 def save_message(request):
     try:
@@ -24,7 +97,7 @@ def save_message(request):
         now_str = timezone.now().strftime('%Y%m%d%H%M%S')
 
         if not all([content, sender_uname, group_id]):
-            return JsonResponse({'status': 'error', 'message': 'Missing required fields'})
+            return JsonResponse({"status": "error", "message": "Missing required fields"})
 
         # 保存消息到数据库
         message = Message(
@@ -37,13 +110,13 @@ def save_message(request):
         )
         message.save()
 
-        return JsonResponse({'status': 'success', 'message': 'Message saved successfully'})
+        return JsonResponse({'status': 'success', "message": "Message saved successfully"})
 
     except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'})
+        return JsonResponse({"status": "error", "message": "Invalid JSON"})
 
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+        return JsonResponse({"status": "error", 'message': str(e)})
 
 
 @csrf_exempt

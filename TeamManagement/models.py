@@ -55,13 +55,14 @@ class TeamMember(models.Model):
 
 class ChatGroup(models.Model):
     GROUP_TYPE_CHOICES = [
+        ('Team', 'Team'),
         ('Public', 'Public'),
         ('Private', 'Private'),
     ]
-    group_id = models.CharField(max_length=40, primary_key=True)
+    group_id = models.CharField(max_length=60, primary_key=True)
     group_name = models.CharField(max_length=255)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    group_type = models.CharField(max_length=255, choices=GROUP_TYPE_CHOICES, default='Public')
+    group_type = models.CharField(max_length=255, choices=GROUP_TYPE_CHOICES, default='Team')
 
     class Meta:
         db_table = 'ChatGroups'
@@ -110,5 +111,3 @@ class VerificationCode(models.Model):
 
     def __str__(self):
         return self.email
-
-
