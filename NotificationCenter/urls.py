@@ -1,6 +1,5 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import notification_views
+from django.urls import path
+from NotificationCenter.views import notification_views
 
 urlpatterns = [
     path('get_notification', notification_views.get_notification),

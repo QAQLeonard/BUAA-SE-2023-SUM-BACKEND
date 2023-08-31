@@ -1,4 +1,3 @@
-
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status

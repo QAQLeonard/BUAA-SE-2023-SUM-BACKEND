@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'TeamManagement.apps.TeamManagementConfig',
     'ProjectExecution.apps.ProjectExecutionConfig',
+    'NotificationCenter.apps.NotificationcenterConfig',
     'rest_framework',
     'rest_framework.authtoken',
 ]
