@@ -142,9 +142,8 @@ def restore_prototype(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-@require_prototype
 @require_project
-def get_prototypes(request):
+def get_project_prototypes(request):
     project = request.project_object
     tag = request.GET.get('tag', None)
     if tag not in ['Normal', 'Deleted']:
