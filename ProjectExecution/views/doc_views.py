@@ -51,6 +51,7 @@ def delete_doc(request):
 # 修改文档权限
 @csrf_exempt
 @api_view(['PUT'])
+@require_doc
 def update_doc(request):
     editable_by_guests = request.data.get('editable_by_guests')
     doc_name = request.data.get('doc_name')
