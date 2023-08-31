@@ -1,5 +1,7 @@
 import pytz
+import portalocker
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -51,12 +53,11 @@ def create_project(request):
     # 如果需要，你可以在这里进行额外的处理，比如图片文件重命名
     if project_image:
         new_filename = f"{project.project_id}_image.png"
-
-        new_file = ContentFile(project.project_image.read())
-        new_file.name = new_filename
-
-        project.project_image.delete(save=False)  # 删除旧文件
-        project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
+        with portalocker.Lock(project.project_image.path, 'rb'):
+            new_file = ContentFile(project.project_image.read())
+            new_file.name = new_filename
+            project.project_image.delete(save=False)  # 删除旧文件
+            project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
 
     return Response({"status": "success", "message": "Project Created"}, status=status.HTTP_201_CREATED)
 
@@ -188,10 +189,11 @@ def copy_project(request):
     )
     if project.project_image:
         new_filename = f"{new_project.project_id}_image.png"
-        new_file = ContentFile(project.project_image.read())
-        new_file.name = new_filename
-        new_project.project_image.delete(save=False)
-        new_project.project_image.save(new_filename, new_file, save=True)
+        with portalocker.Lock(project.project_image.path, 'rb'):
+            new_file = ContentFile(project.project_image.read())
+            new_file.name = new_filename
+            new_project.project_image.delete(save=False)
+            new_project.project_image.save(new_filename, new_file, save=True)
 
     # 复制doc和prototype
     for doc in Doc.objects.filter(project=project):
@@ -213,15 +215,17 @@ def copy_project(request):
         # 复制原型data和style文件
 
         new_data_filename = f"{new_prototype.prototype_id}_data.txt"
-        new_data_file = ContentFile(prototype.prototype_data_file.read())
-        new_data_file.name = new_data_filename
-        new_prototype.prototype_data_file.delete(save=False)
-        new_prototype.prototype_data_file.save(new_data_filename, new_data_file, save=True)
+        with portalocker.Lock(prototype.prototype_data_file.path, 'rb') as lock:
+            new_data_file = ContentFile(prototype.prototype_data_file.read())
+            new_data_file.name = new_data_filename
+            new_prototype.prototype_data_file.delete(save=False)
+            new_prototype.prototype_data_file.save(new_data_filename, new_data_file, save=True)
 
         new_style_filename = f"{prototype.prototype_id}_style.txt"
-        new_style_file = ContentFile(prototype.prototype_style_file.read())
-        new_style_file.name = new_style_filename
-        new_prototype.prototype_style_file.delete(save=False)
-        new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
+        with portalocker.Lock(prototype.prototype_style_file.path, 'rb') as lock:
+            new_style_file = ContentFile(prototype.prototype_style_file.read())
+            new_style_file.name = new_style_filename
+            new_prototype.prototype_style_file.delete(save=False)
+            new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
 
 
