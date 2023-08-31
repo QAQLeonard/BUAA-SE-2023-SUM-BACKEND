@@ -138,12 +138,26 @@ def get_groups(request):
 
     data = []
     for group in groups:
-        data.append({
-            'group_id': group.group_id,
-            'group_name': group.group_name,
-            'group_type': group.group_type,
-            'team_id': group.team.team_id,
-        })
+        if group.group_type == 'Team':
+            data.append({
+                'group_id': group.group_id,
+                'group_name': group.group_name,
+                'group_type': group.group_type,
+                'team_id': group.team.team_id,
+            })
+        elif group.group_type == 'Public':
+            data.append({
+                'group_id': group.group_id,
+                'group_name': group.group_name,
+                'group_type': group.group_type,
+            })
+        elif group.group_type == 'Private':
+            partner_name = group.group_name.replace(user.username, '').replace('private_chat_', '').replace('_', '')
+            data.append({
+                'group_id': group.group_id,
+                'group_name': partner_name,
+                'group_type': group.group_type,
+            })
 
     return JsonResponse({'status': 'success', 'data': data})
 

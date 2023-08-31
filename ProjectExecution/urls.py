@@ -21,7 +21,7 @@ urlpatterns = [
 
     path('create_doc', doc_views.create_doc),
     path('delete_doc', doc_views.delete_doc),
-    path('update_doc_permissions', doc_views.update_doc_permissions),
+    path('update_doc', doc_views.update_doc),
     path('get_doc_permissions', doc_views.get_doc_permissions),
     path('get_project_docs', doc_views.get_project_docs),
     path('get_doc_team_id', doc_views.get_doc_team_id),

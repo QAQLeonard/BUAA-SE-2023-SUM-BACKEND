@@ -51,13 +51,14 @@ def delete_doc(request):
 # 修改文档权限
 @csrf_exempt
 @api_view(['PUT'])
-def update_doc_permissions(request):
+def update_doc(request):
     editable_by_guests = request.data.get('editable_by_guests')
+    doc_name = request.data.get('doc_name')
     doc = request.doc_object
-    if editable_by_guests is None:
-        return JsonResponse({"status": "error", "message": "Missing required fields"},
-                            status=status.HTTP_400_BAD_REQUEST)
-    doc.editable_by_guests = editable_by_guests
+    if editable_by_guests:
+        doc.editable_by_guests = editable_by_guests
+    if doc_name:
+        doc.doc_name = doc_name
     doc.save()
     return JsonResponse({"status": "success", "message": "Document permissions updated"}, status=status.HTTP_200_OK)
 
