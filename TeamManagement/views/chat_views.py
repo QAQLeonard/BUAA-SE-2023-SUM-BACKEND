@@ -127,10 +127,15 @@ def create_private_chat(request):
     )
     GroupMember.objects.create(group=new_group, user=creator)
     GroupMember.objects.create(group=new_group, user=dest_user)
+    group_data = {
+        "group_id": new_group.group_id,
+        "group_name": new_group.group_name,
+        "group_type": new_group.group_type,
+    }
     return JsonResponse({
         "status": "success",
         "message": "Private chat created successfully",
-        "group_id": new_group.group_id,
+        "data": group_data,
     })
 
 
