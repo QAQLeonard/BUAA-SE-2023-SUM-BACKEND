@@ -6,6 +6,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import authentication_classes, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
 import json
+
+from NotificationCenter.views.utils.notifications import create_notification
 from TeamManagement.serializers import *
 from TeamManagement.views.decorators import *
 from shared.decorators import *
@@ -116,7 +118,12 @@ def add_team_member(request):
     # 添加用户到团队
     TeamMember.objects.create(team=team, user=user_to_add)
     GroupMember.objects.create(group=ChatGroup.objects.get(team=team), user=user_to_add)
-
+    notification_data = {
+        "notification_type": "system",
+        "username": user_to_add.username,
+        "content": f"You have been added to the team {team.team_name} by {current_user.username}",
+    }
+    create_notification(notification_data)
     return JsonResponse({'status': 'success', "message": "User successfully added to the team"},
                         status=status.HTTP_201_CREATED)
 
