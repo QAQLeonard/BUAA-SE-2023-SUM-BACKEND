@@ -39,7 +39,11 @@ def create_public_group(request):
         role='Creator'
     )
     group_member.save()
-    return JsonResponse({'status': 'success', "message": "Group created successfully"})
+    return JsonResponse({
+        "status": "success",
+        "message": "Group created successfully",
+        "group_id": group_id
+    })
 
 
 @csrf_exempt
