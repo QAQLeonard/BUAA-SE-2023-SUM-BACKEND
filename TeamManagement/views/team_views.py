@@ -188,6 +188,8 @@ def get_user_role_in_team(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@require_team
+@require_user
 def set_team_member_role(request):
     current_user = request.user
 
