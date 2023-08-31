@@ -10,6 +10,7 @@ urlpatterns = [
     path('restore_project', project_views.restore_project),
     path('get_team_projects', project_views.get_team_projects),
     path('get_project', project_views.get_project),
+    path('copy_project', project_views.copy_project),
 
     path('create_prototype', prototype_views.create_prototype),
     path('update_prototype', prototype_views.update_prototype),
