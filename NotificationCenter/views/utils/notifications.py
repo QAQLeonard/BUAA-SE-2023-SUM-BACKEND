@@ -2,7 +2,10 @@ import json
 import uuid
 
 from django.core.exceptions import ValidationError
-from TeamManagement.models import *
+
+from NotificationCenter.models import Notification
+from ProjectExecution.models import Doc
+from TeamManagement.models import User, Message
 
 
 def create_notification(json_str):

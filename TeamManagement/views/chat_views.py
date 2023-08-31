@@ -43,7 +43,8 @@ def get_group(request):
             }
         })
     elif group.group_type == 'Private':
-        partner_name = group.group_id.replace(request.user_object.username, '').replace('private_chat_', '').replace('_', '')
+        partner_name = group.group_id.replace(request.user.username, '').replace('private_chat_', '').\
+            replace('_', '')
         return JsonResponse({
             "status": "success",
             "data": {
