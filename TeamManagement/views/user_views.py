@@ -16,6 +16,8 @@ from TeamManagement.serializers import *
 from shared.decorators import require_user
 from shared.utils.TeamManage.users import *
 from shared.utils.email import send_email
+import shutil
+import os
 
 
 class UserCURDViewSet(viewsets.ModelViewSet):
@@ -77,6 +79,15 @@ def register(request):
     verification_code.delete()
     new_user = User(password=hashed_password, username=username, real_name=real_name, email=email)
     new_user.save()
+
+    default_avatar_path = '/avatars/default_avatar.png'
+    with open(default_avatar_path, 'rb') as f:
+        avatar_content = f.read()
+    new_filename = f"{username}_avatar.png"
+    new_file = ContentFile(avatar_content)
+    new_file.name = new_filename
+    new_user.avatar.save(new_filename, new_file, save=True)
+
 
     return JsonResponse({"status": "success", "message": "User successfully registered"},
                         status=status.HTTP_201_CREATED)

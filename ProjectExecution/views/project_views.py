@@ -8,9 +8,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
-from ProjectExecution.models import Project
+from ProjectExecution.models import *
 from ProjectExecution.serializers import ProjectSerializer
-from ProjectExecution.views.decorators import require_project
+from ProjectExecution.views.decorators import *
 
 from TeamManagement.models import Team, TeamMember
 from TeamManagement.views import require_team
@@ -169,3 +169,64 @@ def get_project(request):
         "created_at": project.created_at,
     }
     return Response({"status": "success", "project": response_data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_project
+def copy_project(request):
+    current_user = request.user
+    project = request.project_object
+    if not TeamMember.objects.filter(team=project.team, user=current_user).exists():
+        return Response({"status": "error", "message": "You are not a member of this team"},
+                        status=status.HTTP_403_FORBIDDEN)
+    new_project = Project.objects.create(
+        project_id=request.data.get('new_project_id'),
+        project_name=project.project_name + "_Copy",
+        project_description=project.project_description,
+        team=project.team,
+        project_image=project.project_image,
+        created_at=project.created_at,
+        tag=project.tag
+    )
+    if project.project_image:
+        new_filename = f"{new_project.project_id}_image.png"
+        new_file = ContentFile(project.project_image.read())
+        new_file.name = new_filename
+        new_project.project_image.delete(save=False)
+        new_project.project_image.save(new_filename, new_file, save=True)
+
+    # 复制doc和prototype
+    for doc in Doc.objects.filter(project=project):
+        Doc.objects.create(
+            doc_id=doc.doc_id + "_Copy",
+            project=new_project,
+            doc_name=doc.doc_name + "_Copy",
+            editable_by_guests=doc.editable_by_guests
+        )
+
+    for prototype in Prototype.objects.filter(project=project):
+        new_prototype = Prototype.objects.create(
+            prototype_id=prototype.prototype_id + "_Copy",
+            project=new_project,
+            prototype_name=prototype.prototype_name + "_Copy",
+            prototype_description=prototype.prototype_description,
+            tag=prototype.tag
+        )
+        # 复制原型data和style文件
+
+        new_data_filename = f"{new_prototype.prototype_id}_data.txt"
+        new_data_file = ContentFile(prototype.prototype_data_file.read())
+        new_data_file.name = new_data_filename
+        new_prototype.prototype_data_file.delete(save=False)
+        new_prototype.prototype_data_file.save(new_data_filename, new_data_file, save=True)
+
+        new_style_filename = f"{prototype.prototype_id}_style.txt"
+        new_style_file = ContentFile(prototype.prototype_style_file.read())
+        new_style_file.name = new_style_filename
+        new_prototype.prototype_style_file.delete(save=False)
+        new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
+
+
