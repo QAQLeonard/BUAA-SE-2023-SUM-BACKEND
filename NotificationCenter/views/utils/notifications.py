@@ -1,15 +1,12 @@
 import json
 import uuid
-
-from django.core.exceptions import ValidationError
-
+from django.utils import timezone
 from NotificationCenter.models import Notification
 from ProjectExecution.models import Doc
 from TeamManagement.models import User, Message
 
 
 def create_notification(json_str):
-    # notification_type: "project", "prototype", "doc", "comment", "chat"
     try:
         notification_id = generate_notification_id()
         data = json.loads(json_str)
@@ -26,7 +23,8 @@ def create_notification(json_str):
                 user=user,
                 notification_type=notification_type,
                 content=content,
-                doc=doc
+                doc=doc,
+                created_at=timezone.now()
             )
         elif notification_type == "group_chat":
             message_id = data.get('message_id')
@@ -36,7 +34,8 @@ def create_notification(json_str):
                 user=user,
                 notification_type=notification_type,
                 content=content,
-                message=message
+                message=message,
+                created_at=timezone.now()
             )
         elif notification_type == "system":
             notification = Notification.objects.create(
@@ -44,6 +43,7 @@ def create_notification(json_str):
                 user=user,
                 notification_type=notification_type,
                 content=content,
+                created_at=timezone.now()
             )
 
         return notification

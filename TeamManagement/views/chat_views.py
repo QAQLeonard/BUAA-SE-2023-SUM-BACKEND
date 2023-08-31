@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 import re
 
 from NotificationCenter.models import Notification
+from NotificationCenter.views.utils.notifications import create_notification
 from TeamManagement.models import *
 from TeamManagement.views.decorators import require_group
 from shared.decorators import require_user, require_team
@@ -164,12 +165,14 @@ def save_message(request):
             for username in mentioned_usernames:
                 if User.objects.filter(username=username).exists():
                     mentioned_user = User.objects.get(username=username)
-                    Notification.objects.create(
-                        user=mentioned_user,
-                        notification_type='group_chat',
-                        message=message,
-                        content=f"你被 {sender_uname} 提及了",
-                    )
+                    notification_content = f"{sender_uname} mentioned you in a message"
+                    json_str = json.dumps({
+                        "username": username,
+                        "notification_type": "group_chat",
+                        "message_id": message.message_id,
+                        "content": notification_content,
+                    })
+                    create_notification(json_str)
 
         return JsonResponse({'status': 'success', "message": "Message saved successfully"})
 
