@@ -16,6 +16,7 @@ urlpatterns = [
     path('update_user', user_views.update_user),
     path('get_user', user_views.get_user),
     path('update_user_tutorial', user_views.update_user_tutorial),
+    path('upload_avatar', user_views.set_user_avatar),
 
     path('create_team', team_views.create_team),
     path('add_team_member', team_views.add_team_member),
@@ -25,7 +26,7 @@ urlpatterns = [
     path('get_team_members', team_views.get_team_members),
     path('get_teams', team_views.get_user_teams),
     path('get_team', team_views.get_team),
-    path('upload_avatar', user_views.set_user_avatar),
+    path('set_team_image', team_views.set_team_image),
 
     path('create_public_group', chat_views.create_public_group),
     path('create_private_chat', chat_views.create_private_chat),
