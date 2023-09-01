@@ -142,9 +142,12 @@ def convert_format(request):
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
     file_path = f"resources/trans_doc/{doc_id}.{file_format}"
+    options = {
+        'encoding': 'UTF-8'
+    }
     if file_format == 'pdf':
         try:
-            pdfkit.from_string(html, file_path)
+            pdfkit.from_string(html, file_path, options=options)
         except Exception as e:
             return JsonResponse({"status": "error", "message": f"PDF generation error: {str(e)}"},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
