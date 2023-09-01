@@ -4,8 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from docx import Document
 from rest_framework import status
 from rest_framework.decorators import api_view
-from weasyprint import HTML
-
+import pdfkit
 from ProjectExecution.models import Doc
 from ProjectExecution.views.decorators import require_doc, require_project
 from TeamManagement.models import TeamMember, User
@@ -143,19 +142,12 @@ def convert_format(request):
                             status=status.HTTP_400_BAD_REQUEST)
     file_path = f"resources/trans_doc/{doc_id}.{file_format}"
     if file_format == 'pdf':
-        html_obj = HTML(string=html)
-        html_obj.write_pdf(file_path)
-
-        with open(file_path, "rb") as f:
-            pdf_data = f.read()
+        pdfkit.from_string(html, file_path)
 
     elif file_format == 'docx':
         doc = Document()
         doc.add_paragraph(html)
         doc.save(file_path)
-
-        with open(file_path, "rb") as f:
-            doc_data = f.read()
 
     elif file_format == 'md':
         converter = html2text.HTML2Text()
