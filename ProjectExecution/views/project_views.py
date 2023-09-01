@@ -196,7 +196,6 @@ def copy_project(request):
                 project_name=project.project_name + "_Copy",
                 project_description=project.project_description,
                 team=project.team,
-                project_image=project.project_image,
                 created_at=project.created_at,
                 tag=project.tag
             )
