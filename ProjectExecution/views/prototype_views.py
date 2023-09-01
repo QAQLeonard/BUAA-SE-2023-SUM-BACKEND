@@ -181,12 +181,11 @@ def save_prototype_preview(request):
         return Response({"status": "error", "message": "data_str is required"}, status=status.HTTP_400_BAD_REQUEST)
     data_filename = f"{prototype.prototype_id}_preview_data.txt"
     file_path = f"resources/prototype_previews/{data_filename}"
-    with Lock(file_path, 'w') as file:
-        # Save the long string as a txt file in prototype_file
-        if prototype.prototype_preview_file:
-            prototype.prototype_preview_file.delete(save=False)
-        data_file = ContentFile(data)
-        data_file.name = data_filename
-        prototype.prototype_preview_file.save(data_filename, data_file)
+    # Save the long string as a txt file in prototype_file
+    if prototype.prototype_preview_file:
+        prototype.prototype_preview_file.delete(save=False)
+    data_file = ContentFile(data)
+    data_file.name = data_filename
+    prototype.prototype_preview_file.save(data_filename, data_file)
 
     return Response({"status": "success", "message": "Prototype Preview Saved"}, status=status.HTTP_200_OK)
