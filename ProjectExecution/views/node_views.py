@@ -42,6 +42,7 @@ def add_node(request):
     try:
         data = request.data
         node = Node.objects.create(
+            node_id=data['node_id'],
             node_name=data['node_name'],
             node_type=data['node_type'],
             parent_node=Node.objects.get(pk=data['parent_id']) if data.get('parent_id') else None,
