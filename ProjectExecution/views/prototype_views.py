@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from portalocker import Lock
@@ -7,15 +6,9 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.core.files.storage import default_storage
 from ProjectExecution.models import Project, Prototype
-from ProjectExecution.serializers import ProjectSerializer, PrototypeSerializer
+from ProjectExecution.serializers import PrototypeSerializer
 from ProjectExecution.views.decorators import require_prototype, require_project
-
-from TeamManagement.models import Team, TeamMember
-
-
-lock = Lock()
 
 
 @csrf_exempt
@@ -54,31 +47,33 @@ def create_prototype(request):
 @permission_classes([IsAuthenticated])
 @require_prototype
 def update_prototype(request):
-    with lock:
-        data = request.data
-        prototype = request.prototype_object
-        # Update fields
-        for field in ['prototype_name', 'prototype_description', 'tag']:
-            if field in data:
-                setattr(prototype, field, data.get(field))
+    data = request.data
+    prototype = request.prototype_object
+    # Update fields
+    for field in ['prototype_name', 'prototype_description', 'tag']:
+        if field in data:
+            setattr(prototype, field, data.get(field))
 
-        # Update the long string as a txt file if provided
-        data_str = data.get("data_str", None)
-        style_str = data.get("style_str", None)
-        if data_str is not None:
+    # Update the long string as a txt file if provided
+    data_str = data.get("data_str", None)
+    style_str = data.get("style_str", None)
+    if data_str is not None:
+        with Lock(prototype.prototype_data_file.path, 'w') as file:
+            # Save the long string as a txt file in prototype_file
             prototype.prototype_data_file.delete(save=False)
             new_data_file = ContentFile(data_str)
             new_data_file.name = f"{prototype.prototype_id}_data.txt"
             prototype.prototype_data_file.save(new_data_file.name, new_data_file)
             prototype.save()
-        if style_str is not None:
+    if style_str is not None:
+        with Lock(prototype.prototype_style_file.path, 'w') as file:
             prototype.prototype_style_file.delete(save=False)
             new_style_file = ContentFile(style_str)
             new_style_file.name = f"{prototype.prototype_id}_style.txt"
             prototype.prototype_style_file.save(new_style_file.name, new_style_file)
             prototype.save()
-        prototype.save()
-        return Response({"status": "success", "message": "Prototype Updated"}, status=status.HTTP_200_OK)
+    prototype.save()
+    return Response({"status": "success", "message": "Prototype Updated"}, status=status.HTTP_200_OK)
 
 
 @csrf_exempt
