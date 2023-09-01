@@ -1,3 +1,4 @@
+from django.core.files.base import ContentFile
 from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -80,9 +81,18 @@ def create_team(request):
     team = Team(team_id=team_id, team_name=team_name, team_description=team_description)
     team.save()
 
+    # 设置默认image
+    default_image_path = 'resources/team_images/default_image.png'
+    with open(default_image_path, 'rb') as f:
+        image_content = f.read()
+    new_filename = f"{team_id}_image.png"
+    new_file = ContentFile(image_content)
+    new_file.name = new_filename
+    team.team_image.save(new_filename, new_file, save=True)
+
     # 创建默认群聊
     group_name = team_name + '_DefaultChatGroup'
-    group = ChatGroup(group_id=team_id+"_default", group_name=group_name, team=team)
+    group = ChatGroup(group_id=team_id + "_default", group_name=group_name, team=team)
     group.save()
 
     # 将创建者加入Team和ChatGroup
@@ -286,3 +296,28 @@ def get_team(request):
     team = request.team_object
     serializer = TeamSerializer(team)
     return JsonResponse({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_team
+def set_team_image(request):
+    team = request.team_object
+    image = request.FILES.get('image', None)
+    if not image:
+        return JsonResponse({"status": "error", "message": "No image file provided"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    # 删除旧的头像文件，如果存在的话
+    if team.team_image:
+        team.team_image.delete(save=False)
+    # 创建新的头像文件名
+    new_filename = f"{team.team_id}_image.png"
+    # 读取和保存新文件
+    new_file = ContentFile(image.read())
+    new_file.name = new_filename
+    # 保存新的头像
+    team.team_image.save(new_filename, new_file, save=True)
+    return JsonResponse({"status": "success", "message": "Team image updated successfully"},
+                        status=status.HTTP_200_OK)

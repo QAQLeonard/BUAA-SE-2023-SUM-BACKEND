@@ -48,6 +48,9 @@ def add_node(request):
             parent_node=Node.objects.get(pk=data['parent_id']) if data.get('parent_id') else None,
             # Assume Doc object is created and its instance is available
         )
+        if data['node_type'] == 'Doc':
+            doc = Doc.objects.get(pk=data['doc_id'])
+            node.doc = doc
         node.save()
         return JsonResponse({"status": "success", "message": f"Node {node.node_id} created"},
                             status=status.HTTP_201_CREATED)

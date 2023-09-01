@@ -22,6 +22,7 @@ class Team(models.Model):
     team_id = models.CharField(max_length=40, primary_key=True)
     team_name = models.CharField(max_length=255)
     team_description = models.CharField(max_length=255)
+    team_image = models.ImageField(upload_to='resources/team_images/', null=True, blank=True)
 
     class Meta:
         db_table = 'Teams'
