@@ -242,8 +242,13 @@ def copy_project(request):
 
         return Response({"status": "success", "message": "Project Copied"}, status=status.HTTP_201_CREATED)
     except Exception as e:
+        print(e)
+
         if new_project and new_project.project_image:
             new_project.project_image.delete()
+
+        if new_project:
+            new_project.delete()
 
         for doc in created_docs:
             # Assuming you have similar file handling for docs
