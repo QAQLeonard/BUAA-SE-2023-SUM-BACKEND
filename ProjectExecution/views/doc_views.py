@@ -135,7 +135,7 @@ def get_doc(request):
 def convert_format(request):
     file_format = request.data.get('file_format')
     doc = request.doc_object
-    doc_id = doc.id
+    doc_id = doc.doc_id
     html = request.data.get('html')
     if not html:
         return JsonResponse({"status": "error", "message": "Missing required fields"},
