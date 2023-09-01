@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from docx import Document
 from rest_framework import status
 from rest_framework.decorators import api_view
-import pdfkit
+from xhtml2pdf import pisa
 from ProjectExecution.models import Doc
 from ProjectExecution.views.decorators import require_doc, require_project
 from TeamManagement.models import TeamMember, User
@@ -142,7 +142,11 @@ def convert_format(request):
                             status=status.HTTP_400_BAD_REQUEST)
     file_path = f"resources/trans_doc/{doc_id}.{file_format}"
     if file_format == 'pdf':
-        pdfkit.from_string(html, file_path)
+        with open(file_path, "w+b") as f:
+            pisa_status = pisa.CreatePDF(html, dest=f)
+            if pisa_status.err:
+                return JsonResponse({"status": "error", "message": "PDF generation error"},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     elif file_format == 'docx':
         doc = Document()
