@@ -180,7 +180,6 @@ def save_prototype_preview(request):
     if not data:
         return Response({"status": "error", "message": "data_str is required"}, status=status.HTTP_400_BAD_REQUEST)
     data_filename = f"{prototype.prototype_id}_preview_data.txt"
-    file_path = f"resources/prototype_previews/{data_filename}"
     # Save the long string as a txt file in prototype_file
     if prototype.prototype_preview_file:
         prototype.prototype_preview_file.delete(save=False)

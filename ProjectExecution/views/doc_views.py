@@ -142,11 +142,24 @@ def convert_format(request):
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
     file_path = f"resources/trans_doc/{doc_id}.{file_format}"
-    options = {
-        'encoding': 'UTF-8'
-    }
+
     if file_format == 'pdf':
         try:
+            options = {
+                'encoding': 'UTF-8',
+                'custom-header': [
+                    ('Content-Type', 'text/html; charset=UTF-8')
+                ],
+                'no-outline': None,
+                'zoom': '1.3',
+                'dpi': '400',
+                'margin-top': '0mm',
+                'margin-right': '0mm',
+                'margin-bottom': '0mm',
+                'margin-left': '0mm',
+                'load-media-error-handling': 'ignore',
+                '--custom-header': f"<style>@font-face {{ font-family: 'MyFont'; src: url('/usr/share/fonts/truetype/myfonts/Microsoft YaHei UI Bold.ttf'); }} body {{ font-family: 'MyFont'; }}</style>"
+            }
             pdfkit.from_string(html, file_path, options=options)
         except Exception as e:
             return JsonResponse({"status": "error", "message": f"PDF generation error: {str(e)}"},
