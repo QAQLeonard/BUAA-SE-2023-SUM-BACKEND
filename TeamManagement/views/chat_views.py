@@ -116,7 +116,7 @@ def create_private_chat(request):
         private_group = ChatGroup.objects.get(group_id=f"private_chat_{usernames[0]}_{usernames[1]}")
         group_data = {
             "group_id": private_group.group_id,
-            "group_name": private_group.group_name,
+            "group_name": dest_user.username,
             "group_type": private_group.group_type,
         }
         return JsonResponse({
@@ -135,7 +135,7 @@ def create_private_chat(request):
     GroupMember.objects.create(group=new_group, user=dest_user)
     group_data = {
         "group_id": new_group.group_id,
-        "group_name": new_group.group_name,
+        "group_name": dest_user.username,
         "group_type": new_group.group_type,
     }
     return JsonResponse({

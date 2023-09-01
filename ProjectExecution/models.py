@@ -11,7 +11,7 @@ class Project(models.Model):
     project_name = models.CharField(max_length=255)
     project_description = models.CharField(max_length=255)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    project_image = models.ImageField(upload_to='project_images/', null=True, blank=True)
+    project_image = models.ImageField(upload_to='resources/project_images/', null=True, blank=True)
     tag = models.CharField(max_length=255, choices=TAG_CHOICES, default='Normal')
     created_at = models.DateTimeField(null=True)
 
@@ -32,8 +32,8 @@ class Prototype(models.Model):
     prototype_name = models.CharField(max_length=255)
     prototype_description = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    prototype_data_file = models.FileField(upload_to='prototype_files/', null=True, blank=True)
-    prototype_style_file = models.FileField(upload_to='prototype_files/', null=True, blank=True)
+    prototype_data_file = models.FileField(upload_to='resources/prototype_files/', null=True, blank=True)
+    prototype_style_file = models.FileField(upload_to='resources/prototype_files/', null=True, blank=True)
     tag = models.CharField(max_length=255, choices=TAG_CHOICES, default='Normal')
 
     class Meta:

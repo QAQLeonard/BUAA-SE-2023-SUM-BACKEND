@@ -8,7 +8,7 @@ from shared.utils.datetime import get_expiry_time
 class User(AbstractUser):
     username = models.CharField(max_length=30, unique=True, primary_key=True)
     real_name = models.CharField(max_length=255)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    avatar = models.ImageField(upload_to='resources/avatars/', null=True, blank=True)
     has_completed_tutorial = models.BooleanField(default=False)
 
     class Meta:

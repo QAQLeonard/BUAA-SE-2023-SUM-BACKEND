@@ -82,7 +82,7 @@ def register(request):
     new_user = User(password=hashed_password, username=username, real_name=real_name, email=email)
     new_user.save()
 
-    default_avatar_path = 'avatars/default_avatar.png'
+    default_avatar_path = 'resources/avatars/default_avatar.png'
     with open(default_avatar_path, 'rb') as f:
         avatar_content = f.read()
     new_filename = f"{username}_avatar.png"

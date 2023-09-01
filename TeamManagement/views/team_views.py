@@ -118,12 +118,12 @@ def add_team_member(request):
     # 添加用户到团队
     TeamMember.objects.create(team=team, user=user_to_add)
     GroupMember.objects.create(group=ChatGroup.objects.get(team=team), user=user_to_add)
-    notification_data = {
-        "notification_type": "system",
+    json_str = json.dumps({
         "username": user_to_add.username,
+        "notification_type": "system",
         "content": f"You have been added to the team {team.team_name} by {current_user.username}",
-    }
-    create_notification(notification_data)
+    })
+    create_notification(json_str)
     return JsonResponse({'status': 'success', "message": "User successfully added to the team"},
                         status=status.HTTP_201_CREATED)
 
@@ -165,7 +165,12 @@ def remove_team_member(request):
     team_member_to_remove.delete()
     group_member_to_remove = GroupMember.objects.get(group=ChatGroup.objects.get(team=team), user=user_to_remove)
     group_member_to_remove.delete()
-
+    json_str = json.dumps({
+        "username": user_to_remove.username,
+        "notification_type": "system",
+        "content": f"You have been removed from the team {team.team_name} by {current_user.username}",
+    })
+    create_notification(json_str)
     return JsonResponse({"status": "success", "message": "Member successfully removed from the team"},
                         status=status.HTTP_200_OK)
 
@@ -239,6 +244,12 @@ def set_team_member_role(request):
     target_group_member.role = new_role
     target_member.save()
     target_group_member.save()
+    json_str = json.dumps({
+        "username": target_user.username,
+        "notification_type": "system",
+        "content": f"Your role in the team {team.team_name} has been changed to {new_role} by {current_user.username}",
+    })
+    create_notification(json_str)
 
     return JsonResponse({"status": "success", "message": f"Successfully updated role to {new_role}"},
                         status=status.HTTP_200_OK)

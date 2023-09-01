@@ -44,7 +44,6 @@ def get_notification(request):
         notification_data = {
             "notification_id": notification.notification_id,
             "notification_type": "system",
-            "message": notification.message,
             "created_at": notification.created_at,
             "content": notification.content,
         }
