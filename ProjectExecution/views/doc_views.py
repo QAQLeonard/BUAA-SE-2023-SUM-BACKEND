@@ -1,18 +1,14 @@
-from django.core.files.base import ContentFile
-from django.http import JsonResponse
+import html2text
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from docx import Document
 from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.core.files.storage import default_storage
-from ProjectExecution.models import Project, Doc
-from ProjectExecution.serializers import ProjectSerializer
-from ProjectExecution.views import *
-from ProjectExecution.views.decorators import require_doc
+from rest_framework.decorators import api_view
+from weasyprint import HTML
 
-from TeamManagement.models import Team, TeamMember, User
+from ProjectExecution.models import Doc
+from ProjectExecution.views.decorators import require_doc, require_project
+from TeamManagement.models import TeamMember, User
 
 
 # 创建文档
@@ -117,6 +113,7 @@ def get_doc_team_id(request):
     return JsonResponse({"status": "success", "team_id": team.team_id},
                         status=status.HTTP_200_OK)
 
+
 @csrf_exempt
 @api_view(['GET'])
 @require_doc
@@ -131,3 +128,43 @@ def get_doc(request):
         'editable_by_guests': doc.editable_by_guests,
     }
     return JsonResponse({"status": "success", "data": response_data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@require_doc
+def convert_format(request):
+    file_format = request.data.get('file_format')
+    doc = request.doc_object
+    doc_id = doc.id
+    html = request.data.get('html')
+    if not html:
+        return JsonResponse({"status": "error", "message": "Missing required fields"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    file_path = f"resources/trans_doc/{doc_id}.{file_format}"
+    if file_format == 'pdf':
+        html_obj = HTML(string=html)
+        html_obj.write_pdf(file_path)
+
+        with open(file_path, "rb") as f:
+            pdf_data = f.read()
+
+    elif file_format == 'docx':
+        doc = Document()
+        doc.add_paragraph(html)
+        doc.save(file_path)
+
+        with open(file_path, "rb") as f:
+            doc_data = f.read()
+
+    elif file_format == 'md':
+        converter = html2text.HTML2Text()
+        markdown_text = converter.handle(html)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(markdown_text)
+
+    else:
+        return JsonResponse({"status": "error", "message": "Unsupported file format"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    return JsonResponse({"status": "success", "message": "File converted", "file": file_path},)

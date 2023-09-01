@@ -26,6 +26,7 @@ urlpatterns = [
     path('get_project_docs', doc_views.get_project_docs),
     path('get_doc_team_id', doc_views.get_doc_team_id),
     path('get_doc', doc_views.get_doc),
+    path('convert_format', doc_views.convert_format),
 
     path('get_all_nodes', node_views.get_all_nodes),
     path('get_children_nodes', node_views.get_children_nodes),
