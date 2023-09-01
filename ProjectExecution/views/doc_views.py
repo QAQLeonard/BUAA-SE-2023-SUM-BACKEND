@@ -138,6 +138,8 @@ def convert_format(request):
     doc = request.doc_object
     doc_id = doc.doc_id
     html = request.data.get('html')
+    title = Doc.objects.get(doc_id=doc_id).doc_name
+    html = title + html
     if not html:
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
