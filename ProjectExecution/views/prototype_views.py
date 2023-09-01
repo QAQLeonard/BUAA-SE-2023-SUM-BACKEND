@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
+from portalocker import Lock
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -12,7 +13,7 @@ from ProjectExecution.serializers import ProjectSerializer, PrototypeSerializer
 from ProjectExecution.views.decorators import require_prototype, require_project
 
 from TeamManagement.models import Team, TeamMember
-from threading import Lock
+
 
 lock = Lock()
 
@@ -171,3 +172,26 @@ def get_prototype(request):
         'tag': prototype.tag,
     }
     return Response({"status": "success", "data": response_data}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_prototype
+def save_prototype_preview(request):
+    prototype = request.prototype_object
+    data = request.data.get('data_str', None)
+    if not data:
+        return Response({"status": "error", "message": "data_str is required"}, status=status.HTTP_400_BAD_REQUEST)
+    data_filename = f"{prototype.prototype_id}_preview_data.txt"
+    file_path = f"resources/prototype_previews/{data_filename}"
+    with Lock(file_path, 'w') as file:
+        # Save the long string as a txt file in prototype_file
+        if prototype.prototype_preview_file:
+            prototype.prototype_preview_file.delete(save=False)
+        data_file = ContentFile(data)
+        data_file.name = data_filename
+        prototype.prototype_preview_file.save(data_filename, data_file)
+
+    return Response({"status": "success", "message": "Prototype Preview Saved"}, status=status.HTTP_200_OK)

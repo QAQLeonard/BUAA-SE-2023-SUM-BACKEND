@@ -18,6 +18,7 @@ urlpatterns = [
     # path('get_prototype_file', prototype_views.get_prototype_file),
     path('get_project_prototypes', prototype_views.get_project_prototypes),
     path('get_prototype', prototype_views.get_prototype),
+    path('save_prototype_preview', prototype_views.save_prototype_preview),
 
     path('create_doc', doc_views.create_doc),
     path('delete_doc', doc_views.delete_doc),

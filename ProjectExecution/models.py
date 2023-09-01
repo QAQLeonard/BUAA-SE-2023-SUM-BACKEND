@@ -35,6 +35,7 @@ class Prototype(models.Model):
     prototype_data_file = models.FileField(upload_to='resources/prototype_files/', null=True, blank=True)
     prototype_style_file = models.FileField(upload_to='resources/prototype_files/', null=True, blank=True)
     tag = models.CharField(max_length=255, choices=TAG_CHOICES, default='Normal')
+    prototype_preview_file = models.FileField(upload_to='resources/prototype_previews/', null=True, blank=True)
 
     class Meta:
         db_table = 'Prototypes'
