@@ -88,7 +88,8 @@ def update_project(request):
 
         project.project_image.delete(save=False)  # 删除旧文件
         project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
-
+    else:
+        return Response({"status": "error", "message": "No image file provided"}, status=status.HTTP_400_BAD_REQUEST)
     project.save()
 
     return Response({"status": "success", "message": "Project Updated"}, status=status.HTTP_200_OK)

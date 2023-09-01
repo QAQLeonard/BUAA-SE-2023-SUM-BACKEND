@@ -28,7 +28,7 @@ class Prototype(models.Model):
         ('Normal', 'Normal'),
     ]
 
-    prototype_id = models.CharField(max_length=40, primary_key=True)
+    prototype_id = models.CharField(max_length=60, primary_key=True)
     prototype_name = models.CharField(max_length=255)
     prototype_description = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
