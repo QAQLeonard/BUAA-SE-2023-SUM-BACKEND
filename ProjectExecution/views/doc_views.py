@@ -138,7 +138,7 @@ def convert_format(request):
     doc = request.doc_object
     doc_id = doc.doc_id
     html = request.data.get('html')
-    title = Doc.objects.get(doc_id=doc_id).doc_name
+    title = "<h1>" + Doc.objects.get(doc_id=doc_id).doc_name + "</h1>"
     html = title + html
     if not html:
         return JsonResponse({"status": "error", "message": "Missing required fields"},
@@ -152,14 +152,6 @@ def convert_format(request):
                 'custom-header': [
                     ('Content-Type', 'text/html; charset=UTF-8')
                 ],
-                'no-outline': None,
-                'zoom': '1.3',
-                'dpi': '400',
-                'margin-top': '0mm',
-                'margin-right': '0mm',
-                'margin-bottom': '0mm',
-                'margin-left': '0mm',
-                'load-media-error-handling': 'ignore',
                 '--custom-header': f"<style>@font-face {{ font-family: 'MyFont'; src: url('/usr/share/fonts/truetype/myfonts/Microsoft YaHei UI Bold.ttf'); }} body {{ font-family: 'MyFont'; }}</style>"
             }
             pdfkit.from_string(html, file_path, options=options)

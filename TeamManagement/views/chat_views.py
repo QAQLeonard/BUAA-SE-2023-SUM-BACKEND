@@ -291,3 +291,45 @@ def delete_group(request):
         return JsonResponse({'status': 'error', 'message': 'Cannot delete team group'}, status=status.HTTP_403_FORBIDDEN)
     group.delete()
     return JsonResponse({'status': 'success', 'message': 'Group deleted successfully'}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_group
+@require_user
+def add_group_member(request):
+    group = request.group_object
+    current_user = request.user
+    user_to_add = request.user_object
+    GroupMember.objects.create(group=group, user=user_to_add)
+    json_str = json.dumps({
+        "username": user_to_add.username,
+        "notification_type": "system",
+        "content": f"You have been added to the group {group.group_name} by {current_user.username}",
+    })
+    create_notification(json_str)
+    return JsonResponse({'status': 'success', 'message': 'User added to team successfully'},
+                        status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_group
+@require_user
+def remove_group_member(request):
+    group = request.group_object
+    current_user = request.user
+    user_to_remove = request.user_object
+    GroupMember.objects.get(group=group, user=user_to_remove).delete()
+    json_str = json.dumps({
+        "username": user_to_remove.username,
+        "notification_type": "system",
+        "content": f"You have been removed from the group {group.group_name} by {current_user.username}",
+    })
+    create_notification(json_str)
+    return JsonResponse({'status': 'success', 'message': 'User removed from team successfully'},
+                        status=status.HTTP_200_OK)
