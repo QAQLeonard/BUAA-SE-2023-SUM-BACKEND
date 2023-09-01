@@ -41,8 +41,8 @@ def add_node(request):
     try:
         data = request.data
         node = Node.objects.create(
-            node_name=data['name'],
-            node_type=data['type'],
+            node_name=data['node_name'],
+            node_type=data['node_type'],
             parent_node=Node.objects.get(pk=data['parent_id']) if data.get('parent_id') else None,
             # Assume Doc object is created and its instance is available
         )
@@ -61,7 +61,7 @@ def update_node(request):
         node_id = request.data.get('node_id')
         node = Node.objects.get(node_id=node_id)
         data = request.data
-        node.node_name = data.get('name', node.node_name)
+        node.node_name = data.get('node_name', node.node_name)
         # Update doc content if applicable
         node.save()
         return JsonResponse({"status": "success", "message": f"Node {node.node_id} updated"})
