@@ -321,7 +321,7 @@ def set_team_image(request):
     new_file = ContentFile(image.read())
     new_file.name = new_filename
     # 保存新的头像
-    with Lock(new_filename, 'wb') as lock:
-        team.team_image.save(new_filename, new_file, save=True)
+    # with Lock("resources/team_images"+new_filename, 'wb') as lock:
+    team.team_image.save(new_filename, new_file, save=True)
     return JsonResponse({"status": "success", "message": "Team image updated successfully"},
                         status=status.HTTP_200_OK)
