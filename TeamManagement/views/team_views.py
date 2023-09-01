@@ -2,6 +2,7 @@ from django.core.files.base import ContentFile
 from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from portalocker import Lock
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import viewsets, status
 from rest_framework.decorators import authentication_classes, permission_classes, api_view
@@ -311,13 +312,15 @@ def set_team_image(request):
                             status=status.HTTP_400_BAD_REQUEST)
     # 删除旧的头像文件，如果存在的话
     if team.team_image:
-        team.team_image.delete(save=False)
+        with Lock(team.team_image.path, 'r+b'):
+            team.team_image.delete(save=False)
     # 创建新的头像文件名
     new_filename = f"{team.team_id}_image.png"
     # 读取和保存新文件
     new_file = ContentFile(image.read())
     new_file.name = new_filename
     # 保存新的头像
-    team.team_image.save(new_filename, new_file, save=True)
+    with Lock(new_filename, 'wb') as lock:
+        team.team_image.save(new_filename, new_file, save=True)
     return JsonResponse({"status": "success", "message": "Team image updated successfully"},
                         status=status.HTTP_200_OK)

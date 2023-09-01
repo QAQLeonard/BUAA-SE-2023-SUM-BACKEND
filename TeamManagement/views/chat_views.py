@@ -169,6 +169,18 @@ def save_message(request):
             message_id=f"{group_id}{sender_uname}{now_str}"
         )
         message.save()
+        if '/@/*ALL*' in content:
+            # 执行相关逻辑，例如通知所有群组成员
+            notification_content = f"{sender_uname} mentioned all in a message"
+            for member in GroupMember.objects.filter(group=message.group):
+                if member.user != message.sender:
+                    json_str = json.dumps({
+                        "username": member.user.username,
+                        "notification_type": "group_chat",
+                        "message_id": message.message_id,
+                        "content": notification_content,
+                    })
+                    create_notification(json_str)
 
         pattern = r'\/@\/(\w+)\s'
         mentioned_usernames = re.findall(pattern, content)
