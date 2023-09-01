@@ -308,6 +308,7 @@ def set_team_image(request):
     team = request.team_object
     image = request.FILES.get('image', None)
     if not image:
+        print("No image file provided")
         return JsonResponse({"status": "error", "message": "No image file provided"},
                             status=status.HTTP_400_BAD_REQUEST)
     # 删除旧的头像文件，如果存在的话
