@@ -55,3 +55,23 @@ class Doc(models.Model):
     def __str__(self):
         return self.doc_id
 
+
+class Node(models.Model):
+    TYPE_CHOICES = [
+        ('Doc', 'Doc'),
+        ('Folder', 'Folder'),
+    ]
+    node_id = models.CharField(max_length=40, primary_key=True)
+    node_name = models.CharField(max_length=255)
+    node_type = models.CharField(max_length=255, choices=TYPE_CHOICES, default='Doc')
+    parent_node = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    doc = models.ForeignKey(Doc, on_delete=models.CASCADE, null=True)
+
+    def to_dict(self):
+        children = Node.objects.filter(parent_node=self)
+        return {
+            "id": self.node_id,
+            "label": self.node_name,
+            "children": [child.to_dict() for child in children]
+        }
+
