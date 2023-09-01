@@ -316,7 +316,7 @@ def set_team_image(request):
         with Lock(team.team_image.path, 'r+b'):
             team.team_image.delete(save=False)
     # 创建新的头像文件名
-    new_filename = f"resources/team_images/{team.team_id}_image.png"
+    new_filename = f"{team.team_id}_image.png"
     # 读取和保存新文件
     new_file = ContentFile(image.read())
     new_file.name = new_filename
