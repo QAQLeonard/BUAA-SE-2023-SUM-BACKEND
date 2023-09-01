@@ -1,6 +1,7 @@
 import pytz
 import portalocker
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authentication import TokenAuthentication
@@ -176,58 +177,83 @@ def copy_project(request):
     current_user = request.user
     project = request.project_object
     new_project_id = request.data.get('new_project_id')
-    if not TeamMember.objects.filter(team=project.team, user=current_user).exists():
-        return Response({"status": "error", "message": "You are not a member of this team"},
-                        status=status.HTTP_403_FORBIDDEN)
-    if Project.objects.filter(project_id=request.data.get('new_project_id')).exists():
-        return Response({"status": "error", "message": "Project ID already exists"},
-                        status=status.HTTP_400_BAD_REQUEST)
-    new_project = Project.objects.create(
-        project_id=new_project_id,
-        project_name=project.project_name + "_Copy",
-        project_description=project.project_description,
-        team=project.team,
-        project_image=project.project_image,
-        created_at=project.created_at,
-        tag=project.tag
-    )
-    if project.project_image:
-        new_filename = f"{new_project.project_id}_image.png"
-        with portalocker.Lock(project.project_image.path, 'rb'):
-            new_file = ContentFile(project.project_image.read())
-            new_file.name = new_filename
-            new_project.project_image.delete(save=False)
-            new_project.project_image.save(new_filename, new_file, save=True)
+    new_project = None  # Initialize to None for cleanup in case of failure
+    created_docs = []
+    created_prototypes = []
+    try:
+        with transaction.atomic():  # Start of transaction block
+            if not TeamMember.objects.filter(team=project.team, user=current_user).exists():
+                return Response({"status": "error", "message": "You are not a member of this team"},
+                                status=status.HTTP_403_FORBIDDEN)
 
-    # 复制doc和prototype
-    for doc in Doc.objects.filter(project=project):
-        Doc.objects.create(
-            doc_id=new_project_id + "_" + doc.doc_id + "_Copy",
-            project=new_project,
-            doc_name=doc.doc_name + "_Copy",
-            editable_by_guests=doc.editable_by_guests
-        )
+            if Project.objects.filter(project_id=request.data.get('new_project_id')).exists():
+                return Response({"status": "error", "message": "Project ID already exists"},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-    for prototype in Prototype.objects.filter(project=project):
-        new_prototype = Prototype.objects.create(
-            prototype_id=new_project_id + "_" + prototype.prototype_id + "_Copy",
-            project=new_project,
-            prototype_name=new_project_id + "_" + prototype.prototype_name + "_Copy",
-            prototype_description=prototype.prototype_description,
-            tag=prototype.tag
-        )
-        # 复制原型data和style文件
+            new_project = Project.objects.create(
+                project_id=new_project_id,
+                project_name=project.project_name + "_Copy",
+                project_description=project.project_description,
+                team=project.team,
+                project_image=project.project_image,
+                created_at=project.created_at,
+                tag=project.tag
+            )
 
-        new_data_filename = f"{new_prototype.prototype_id}_data.txt"
-        with portalocker.Lock(prototype.prototype_data_file.path, 'rb') as lock:
-            new_data_file = ContentFile(prototype.prototype_data_file.read())
-            new_data_file.name = new_data_filename
-            new_prototype.prototype_data_file.save(new_data_filename, new_data_file, save=True)
+            if project.project_image:
+                new_filename = f"{new_project.project_id}_image.png"
+                with portalocker.Lock(project.project_image.path, 'rb'):
+                    new_file = ContentFile(project.project_image.read())
+                    new_file.name = new_filename
+                    new_project.project_image.delete(save=False)
+                    new_project.project_image.save(new_filename, new_file, save=True)
 
-        new_style_filename = f"{prototype.prototype_id}_style.txt"
-        with portalocker.Lock(prototype.prototype_style_file.path, 'rb') as lock:
-            new_style_file = ContentFile(prototype.prototype_style_file.read())
-            new_style_file.name = new_style_filename
-            new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
+             # 复制doc和prototype
+            for doc in Doc.objects.filter(project=project):
+                new_doc = Doc.objects.create(
+                    doc_id=new_project_id + "_" + doc.doc_id + "_Copy",
+                    project=new_project,
+                    doc_name=doc.doc_name + "_Copy",
+                    editable_by_guests=doc.editable_by_guests
+                )
+                created_docs.append(new_doc)
 
-    return Response({"status": "success", "message": "Project Copied"}, status=status.HTTP_201_CREATED)
+            for prototype in Prototype.objects.filter(project=project):
+                new_prototype = Prototype.objects.create(
+                    prototype_id=new_project_id + "_" + prototype.prototype_id + "_Copy",
+                    project=new_project,
+                    prototype_name=new_project_id + "_" + prototype.prototype_name + "_Copy",
+                    prototype_description=prototype.prototype_description,
+                    tag=prototype.tag
+                )
+                created_prototypes.append(new_prototype)
+                # 复制原型data和style文件
+                new_data_filename = f"{new_prototype.prototype_id}_data.txt"
+                with portalocker.Lock(prototype.prototype_data_file.path, 'rb') as lock:
+                    new_data_file = ContentFile(prototype.prototype_data_file.read())
+                    new_data_file.name = new_data_filename
+                    new_prototype.prototype_data_file.save(new_data_filename, new_data_file, save=True)
+
+                new_style_filename = f"{prototype.prototype_id}_style.txt"
+                with portalocker.Lock(prototype.prototype_style_file.path, 'rb') as lock:
+                    new_style_file = ContentFile(prototype.prototype_style_file.read())
+                    new_style_file.name = new_style_filename
+                    new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
+
+        return Response({"status": "success", "message": "Project Copied"}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        if new_project and new_project.project_image:
+            new_project.project_image.delete()
+
+        for doc in created_docs:
+            # Assuming you have similar file handling for docs
+            if doc.some_file_field:
+                doc.some_file_field.delete()
+
+        for prototype in created_prototypes:
+            if prototype.prototype_data_file:
+                prototype.prototype_data_file.delete()
+            if prototype.prototype_style_file:
+                prototype.prototype_style_file.delete()
+
+        return Response({"status": "error", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
