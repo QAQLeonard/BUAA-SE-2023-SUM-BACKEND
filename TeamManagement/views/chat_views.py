@@ -301,6 +301,9 @@ def delete_group(request):
 @require_user
 def add_group_member(request):
     group = request.group_object
+    if not group.group_type == 'Public':
+        return JsonResponse({'status': 'error', 'message': 'Cannot add member to team group/private chat'},
+                            status=status.HTTP_403_FORBIDDEN)
     current_user = request.user
     user_to_add = request.user_object
     GroupMember.objects.create(group=group, user=user_to_add)
@@ -324,6 +327,9 @@ def remove_group_member(request):
     group = request.group_object
     current_user = request.user
     user_to_remove = request.user_object
+    if not group.group_type == 'Public':
+        return JsonResponse({'status': 'error', 'message': 'Cannot remove member to team group/private chat'},
+                            status=status.HTTP_403_FORBIDDEN)
     GroupMember.objects.get(group=group, user=user_to_remove).delete()
     json_str = json.dumps({
         "username": user_to_remove.username,
