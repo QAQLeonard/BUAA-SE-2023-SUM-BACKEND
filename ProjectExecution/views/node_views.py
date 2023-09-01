@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -47,9 +48,11 @@ def add_node(request):
             # Assume Doc object is created and its instance is available
         )
         node.save()
-        return JsonResponse({"status": "success", "message": f"Node {node.node_id} created"})
+        return JsonResponse({"status": "success", "message": f"Node {node.node_id} created"},
+                            status=status.HTTP_201_CREATED)
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
+        print(e)
+        return JsonResponse({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @csrf_exempt
