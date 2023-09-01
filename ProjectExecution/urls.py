@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import prototype_views, doc_views, project_views
+from .views import prototype_views, doc_views, project_views, node_views
 
 urlpatterns = [
     path('create_project', project_views.create_project),
@@ -26,4 +26,10 @@ urlpatterns = [
     path('get_project_docs', doc_views.get_project_docs),
     path('get_doc_team_id', doc_views.get_doc_team_id),
     path('get_doc', doc_views.get_doc),
+
+    path('get_all_nodes', node_views.get_all_nodes),
+    path('get_children_nodes', node_views.get_children_nodes),
+    path('add_node', node_views.add_node),
+    path('update_node', node_views.update_node),
+    path('delete_node', node_views.delete_node),
 ]
