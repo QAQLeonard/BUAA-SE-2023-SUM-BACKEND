@@ -234,13 +234,16 @@ def copy_project(request):
                     new_data_file.name = new_data_filename
                     new_prototype.prototype_data_file.save(new_data_filename, new_data_file, save=True)
 
-                new_style_filename = f"{prototype.prototype_id}_style.txt"
+                new_style_filename = f"{new_prototype.prototype_id}_style.txt"
                 with portalocker.Lock(prototype.prototype_style_file.path, 'rb') as lock:
                     new_style_file = ContentFile(prototype.prototype_style_file.read())
                     new_style_file.name = new_style_filename
                     new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
 
         return Response({"status": "success", "message": "Project Copied"}, status=status.HTTP_201_CREATED)
+
+
+
     except Exception as e:
         print(e)
 
