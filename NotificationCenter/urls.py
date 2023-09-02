@@ -8,4 +8,5 @@ urlpatterns = [
     path('delete_notification', notification_views.delete_notification),
     path('delete_read_notifications', notification_views.delete_read_notifications),
     path('read_all_notifications', notification_views.read_all_notifications),
+    path('create_doc_notification', notification_views.create_doc_notification),
 ]
