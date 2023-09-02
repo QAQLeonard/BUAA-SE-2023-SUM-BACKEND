@@ -2,7 +2,6 @@
 package top.leonardsaikou.sesum2023backendwebsocket.controller;
 
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import top.leonardsaikou.sesum2023backendwebsocket.model.Message;
@@ -24,6 +23,7 @@ public class WebSocketController
     @MessageMapping("/send/{group_id}")
     public void sendMessageToGroup(@DestinationVariable String group_id, @RequestBody Message message)
     {
+        message.content = message.content.replace("zxd", "qmk").replace("周星达", "秦茂凯");
         if (message.content.contains("原神"))
         {
             Message temp = new Message();
