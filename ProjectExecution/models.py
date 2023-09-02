@@ -74,6 +74,7 @@ class Node(models.Model):
         return {
             "id": self.node_id,
             "label": self.node_name,
+            "node_type": self.node_type,
             "children": [child.to_dict() for child in children]
         }
 
