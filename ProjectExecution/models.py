@@ -63,7 +63,7 @@ class Node(models.Model):
         ('Doc', 'Doc'),
         ('Folder', 'Folder'),
     ]
-    node_id = models.CharField(max_length=60, primary_key=True)
+    node_id = models.CharField(max_length=100, primary_key=True)
     node_name = models.CharField(max_length=255)
     node_type = models.CharField(max_length=255, choices=TYPE_CHOICES, default='Doc')
     parent_node = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
