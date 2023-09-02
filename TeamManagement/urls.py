@@ -38,4 +38,5 @@ urlpatterns = [
     path('delete_group', chat_views.delete_group),
     path('add_group_member', chat_views.add_group_member),
     path('remove_group_member', chat_views.remove_group_member),
+    path('get_user_role_in_group', chat_views.get_user_role_in_group),
 ]
