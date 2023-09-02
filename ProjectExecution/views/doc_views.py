@@ -27,9 +27,10 @@ def create_doc(request):
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
     if Doc.objects.filter(doc_id=doc_id).exists():
-        print("Doc already exists")
-        return JsonResponse({"status": "error", "message": "Doc already exists"},
-                            status=status.HTTP_400_BAD_REQUEST)
+        doc = Doc.objects.get(doc_id=doc_id)
+        doc.doc_name = doc_name
+        doc.project = project
+        doc.save()
 
     doc = Doc(doc_id=doc_id, project=project, doc_name=doc_name)
     doc.save()

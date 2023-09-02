@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth.hashers import check_password, make_password
 from django.db.models import Q
+from portalocker import Lock
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework import viewsets, status
@@ -201,7 +202,8 @@ def set_user_avatar(request):
         user = User.objects.get(username=request.user.username)
         # 删除旧的头像文件，如果存在的话
         if user.avatar:
-            user.avatar.delete(save=False)
+            with Lock(user.avatar.path, 'r+b'):
+                user.avatar.delete(save=False)
         # 创建新的头像文件名
         new_filename = f"{user.username}_avatar.png"
         # 读取和保存新文件

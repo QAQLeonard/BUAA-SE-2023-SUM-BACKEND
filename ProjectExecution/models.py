@@ -47,7 +47,7 @@ class Prototype(models.Model):
 class Doc(models.Model):
     doc_id = models.CharField(max_length=40, primary_key=True)
     doc_name = models.CharField(max_length=255, null=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     editable_by_guests = models.BooleanField(default=False)
     yjs_data = models.BinaryField(null=True)
 

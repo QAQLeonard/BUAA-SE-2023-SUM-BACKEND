@@ -58,7 +58,7 @@ def update_prototype(request):
     data_str = data.get("data_str", None)
     style_str = data.get("style_str", None)
     if data_str is not None:
-        with Lock(prototype.prototype_data_file.path, 'w') as file:
+        with Lock(prototype.prototype_data_file.path, 'r+b') as file:
             # Save the long string as a txt file in prototype_file
             prototype.prototype_data_file.delete(save=False)
             new_data_file = ContentFile(data_str)
@@ -66,7 +66,7 @@ def update_prototype(request):
             prototype.prototype_data_file.save(new_data_file.name, new_data_file)
             prototype.save()
     if style_str is not None:
-        with Lock(prototype.prototype_style_file.path, 'w') as file:
+        with Lock(prototype.prototype_style_file.path, 'r+b') as file:
             prototype.prototype_style_file.delete(save=False)
             new_style_file = ContentFile(style_str)
             new_style_file.name = f"{prototype.prototype_id}_style.txt"
