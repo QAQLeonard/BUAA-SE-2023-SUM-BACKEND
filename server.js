@@ -23,7 +23,7 @@ const server = Server.configure({
         const connection = await pool.getConnection();
         try {
           const [rows] = await connection.query(
-            'SELECT yjs_data FROM docs WHERE doc_id = ? ORDER BY id DESC LIMIT 1',
+            'SELECT yjs_data FROM docs WHERE doc_id = ? ORDER BY doc_id DESC LIMIT 1',
             [documentName]
           );
           connection.release();
