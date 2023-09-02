@@ -1,4 +1,7 @@
+import json
+
 from django.db.models import Q
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
@@ -7,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from NotificationCenter.models import Notification
 from NotificationCenter.serializers import NotificationSerializer
+from NotificationCenter.views.utils.notifications import create_notification
+from shared.decorators import require_user
 
 
 @csrf_exempt
@@ -114,3 +119,23 @@ def read_all_notifications(request):
     user = request.user
     Notification.objects.filter(user=user).update(is_read=True)
     return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_user
+def create_doc_notification(request):
+    current_user = request.user
+    user_to_notice = request.user_object
+    doc_id = request.data.get('doc_id', None)
+    json_str = json.dumps({
+        "username": user_to_notice.username,
+        "notification_type": "document",
+        "doc_id": doc_id,
+        "content": f"{current_user.username} shared a document with you",
+    })
+    notification = create_notification(json_str)
+    return JsonResponse({"status": "success", "message": "Notification created successfully"},
+                        status=status.HTTP_200_OK)
