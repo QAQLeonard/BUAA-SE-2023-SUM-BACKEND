@@ -29,6 +29,7 @@ def create_doc(request):
     yjs_data = None
     if model_id:
         try:
+            print(model_id)
             model_doc = Doc.objects.get(doc_id=model_id)
             yjs_data = model_doc.yjs_data  # 从模型文档中获取yjs_data
         except Doc.DoesNotExist:
