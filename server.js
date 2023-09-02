@@ -13,9 +13,10 @@ const server = Server.configure({
     new Database({
       fetch: ({ documentName }) => {
         return new Promise((resolve, reject) => {
-          axios.get(`http://23.94.102.135:8000/api/v1/pe/docs/${documentName}/data/`)
+          axios.get(`http://23.94.102.135:8000/api/v1/pe/docs/${documentName}/data/`,{responseType: 'blob'})
           .then(response => {
-            resolve(response.data.yjs_data); // 如果返回的字段是'yjs_data'，请相应地调整这里
+            let data = new Uint8Array(response.data);
+            resolve(data);
           })
           .catch(error => {
             console.error(error);
