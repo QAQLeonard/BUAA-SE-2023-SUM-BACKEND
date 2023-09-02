@@ -1,6 +1,7 @@
 import html2text
 import pdfkit
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from docx import Document
 from rest_framework import status
@@ -175,3 +176,27 @@ def convert_format(request):
                             status=status.HTTP_400_BAD_REQUEST)
 
     return JsonResponse({"status": "success", "message": "File converted", "file": file_path},)
+
+
+class DocumentData(View):
+
+    def get(self, request, doc_id):
+        try:
+            doc = Doc.objects.get(doc_id=doc_id)
+            return JsonResponse({"data": doc.yjs_data})
+        except Doc.DoesNotExist:
+            return HttpResponseBadRequest('Document not found')
+
+    def post(self, request, doc_id):
+        try:
+            yjs_data = request.body
+            doc, created = Doc.objects.get_or_create(
+                doc_id=doc_id,
+                defaults={'yjs_data': yjs_data}
+            )
+            if not created:
+                doc.yjs_data = yjs_data
+                doc.save()
+            return JsonResponse({"message": "Document saved successfully"})
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))

@@ -49,6 +49,7 @@ class Doc(models.Model):
     doc_name = models.CharField(max_length=255, null=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     editable_by_guests = models.BooleanField(default=False)
+    yjs_data = models.BinaryField(null=True)
 
     class Meta:
         db_table = 'Docs'
