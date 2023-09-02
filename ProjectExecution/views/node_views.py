@@ -110,6 +110,6 @@ def delete_node(request):
     try:
         node = request.node_object
         delete_sub_nodes(node)
-        return JsonResponse({"status": "success", "message": f"Node {node_id} deleted"})
+        return JsonResponse({"status": "success", "message": f"Node {node.node_id} deleted"})
     except Node.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Node not found"})
