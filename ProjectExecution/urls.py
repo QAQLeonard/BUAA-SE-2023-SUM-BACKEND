@@ -31,6 +31,7 @@ urlpatterns = [
     path('convert_format', doc_views.convert_format),
     path('docs/<str:doc_id>/data/', doc_views.DocumentData.as_view(), name='document_data'),
 
+    path('get_node', node_views.get_node),
     path('get_all_nodes', node_views.get_all_nodes),
     path('get_children_nodes', node_views.get_children_nodes),
     path('add_node', node_views.add_node),

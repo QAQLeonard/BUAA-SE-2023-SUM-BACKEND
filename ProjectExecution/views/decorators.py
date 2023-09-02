@@ -63,3 +63,23 @@ def require_prototype(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
+
+
+def require_node(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        node_id = request.GET.get('node_id')
+        if not node_id:
+            node_id = request.data.get('node_id')
+
+        if not node_id:
+            return JsonResponse({'status': 'error', 'message': 'Missing node_id parameter'}, status=400)
+
+        try:
+            node = Node.objects.get(node_id=node_id)
+        except Node.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Node does not exist'}, status=404)
+
+        request.node_object = node  # Attach node to request object so that it's available in the view
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view

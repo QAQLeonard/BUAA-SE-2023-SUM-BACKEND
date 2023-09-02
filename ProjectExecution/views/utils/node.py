@@ -1,3 +1,4 @@
+from ProjectExecution.models import Node
 from ProjectExecution.serializers import NodeSerializer
 
 
@@ -21,3 +22,10 @@ def find_node_level(node):
         level += 1
         node = node.parent_node
     return level
+
+
+def delete_sub_nodes(node):
+    children = Node.objects.filter(parent_node=node)
+    for child in children:
+        delete_sub_nodes(child)
+    node.delete()

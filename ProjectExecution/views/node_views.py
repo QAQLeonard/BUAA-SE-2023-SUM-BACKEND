@@ -7,7 +7,24 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 
 from ProjectExecution.models import Doc, Node, Project, Prototype
-from ProjectExecution.views.utils.node import find_node_level
+from ProjectExecution.views import require_node
+from ProjectExecution.views.utils.node import find_node_level, delete_sub_nodes
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_node
+def get_node(request):
+    node = request.node_object
+    node_data={
+        "node_id": node.node_id,
+        "node_name": node.node_name,
+        "node_type": node.node_type,
+        "doc_id": node.doc.doc_id if node.doc else None,
+    }
+    return JsonResponse({"status": "success", "data": node_data}, status=status.HTTP_200_OK)
+
 
 
 @csrf_exempt
@@ -90,7 +107,7 @@ def delete_node(request):
     try:
         node_id = request.data.get('node_id')
         node = Node.objects.get(node_id=node_id)
-        node.delete()
+        delete_sub_nodes(node)
         return JsonResponse({"status": "success", "message": f"Node {node_id} deleted"})
     except Node.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Node not found"})
