@@ -9,7 +9,7 @@ from docx import Document
 from rest_framework import status
 from rest_framework.decorators import api_view
 from xhtml2pdf import pisa
-from ProjectExecution.models import Doc
+from ProjectExecution.models import Doc, Node
 from ProjectExecution.views.decorators import require_doc, require_project
 from TeamManagement.models import TeamMember, User
 
@@ -64,6 +64,9 @@ def update_doc(request):
     doc = request.doc_object
     if doc_name:
         doc.doc_name = doc_name
+        node = Node.objects.get(doc=doc)
+        node.node_name = doc_name
+        node.save()
     else:
         doc.editable_by_guests = not doc.editable_by_guests
     doc.save()
