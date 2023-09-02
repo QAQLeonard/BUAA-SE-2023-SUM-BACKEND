@@ -41,14 +41,16 @@ def get_all_nodes(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
-@require_node
 def get_children_nodes(request):
     try:
-        node = request.node_object
+        node_id = request.GET.get('node_id')
+        if not node_id:
+            node_id = request.data.get('node_id')
+        node = Node.objects.get(node_id=node_id)
         tree = [node.to_dict()]
         return JsonResponse({"data": tree}, safe=False)
     except Node.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Node not found"})
+        return JsonResponse({"status": "error", "message": f"Node{node_id} not found"})
 
 
 @csrf_exempt
