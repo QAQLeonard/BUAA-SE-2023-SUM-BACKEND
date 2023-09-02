@@ -23,7 +23,6 @@ def create_doc(request):
     project = request.project_object
     doc_name = request.data.get('doc_name')
     model_id = request.data.get('model_id')
-    print('model_id:'+model_id)
     # 校验参数
     if not doc_id or not doc_name:
         print("Missing required fields")
@@ -32,7 +31,6 @@ def create_doc(request):
     yjs_data = None
     if model_id:
         try:
-            print(model_id)
             model_doc = Doc.objects.get(doc_id=model_id)
             yjs_data = model_doc.yjs_data  # 从模型文档中获取yjs_data
         except Doc.DoesNotExist:
