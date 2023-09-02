@@ -3,7 +3,7 @@ import { Server } from "@hocuspocus/server";
 import { Database } from "@hocuspocus/extension-database"
 
 const server = Server.configure({
-    port: 80,
+    port: 8002,
 
   async onConnect() {
     console.log('🔮')
