@@ -343,3 +343,23 @@ def remove_group_member(request):
     create_notification(json_str)
     return JsonResponse({'status': 'success', 'message': 'User removed from team successfully'},
                         status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_group
+@require_user
+def get_user_role_in_group(request):
+    group = request.group_object
+    user = request.user_object
+    try:
+        group_member = GroupMember.objects.get(group=group, user=user)
+        role = group_member.role
+    except GroupMember.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User is not a member of this group"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    return JsonResponse({"status": "success", "role": role}, status=status.HTTP_200_OK)

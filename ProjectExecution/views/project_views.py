@@ -207,6 +207,13 @@ def copy_project(request):
                 tag=project.tag
             )
 
+            project_node = Node(
+                node_id=new_project.project_id + "_001",
+                node_name=new_project.project_name,
+                node_type='Folder',
+            )
+            project_node.save()
+
             if project.project_image:
                 new_filename = f"{new_project.project_id}_image.png"
                 with portalocker.Lock(project.project_image.path, 'rb'):
@@ -215,7 +222,7 @@ def copy_project(request):
                     new_project.project_image.delete(save=False)
                     new_project.project_image.save(new_filename, new_file, save=True)
 
-             # 复制doc和prototype
+            # 复制doc和prototype
             for doc in Doc.objects.filter(project=project):
                 new_doc = Doc.objects.create(
                     doc_id=new_project_id + "_" + doc.doc_id + "_Copy",
@@ -248,8 +255,6 @@ def copy_project(request):
                     new_prototype.prototype_style_file.save(new_style_filename, new_style_file, save=True)
 
         return Response({"status": "success", "message": "Project Copied"}, status=status.HTTP_201_CREATED)
-
-
 
     except Exception as e:
         print(e)
