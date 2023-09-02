@@ -1,54 +1,45 @@
-import axios from 'axios';  // 确保已经安装了Axios
 import { Server } from "@hocuspocus/server";
 import { Database } from "@hocuspocus/extension-database"
+import mysql from "mysql2/promise";
 
-function arrayBufferToBase64(buffer) {
-  let binary = '';
-  let bytes = new Uint8Array(buffer);
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return window.btoa(binary);
-}
-
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  database: "se_sum",
+  password: "ef515b982e119ceb",
+});
 
 
 const server = Server.configure({
-  port: 8002,
-
-  async onConnect() {
-    console.log('🔮')
-  },
-
   extensions: [
     new Database({
-      fetch: ({ documentName }) => {
-        return new Promise((resolve, reject) => {
-          axios.get(`http://23.94.102.135:8000/api/v1/pe/docs/${documentName}/data/`, { responseType: 'blob' })
-            .then(response => {
-              const base64Data = response.data.yjs_data;
-              const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-              resolve(binaryData);
-            })
-            .catch(error => {
-              console.error(error);
-              reject(null);
-
-            });
-        });
+      fetch: async ({ documentName }) => {
+        const connection = await pool.getConnection();
+        try {
+          const [rows] = await connection.query(
+            'SELECT yjs_data FROM docs WHERE doc_id = ? ORDER BY id DESC LIMIT 1',
+            [documentName]
+          );
+          connection.release();
+          return rows.length ? rows[0].data : null;
+        } catch (error) {
+          connection.release();
+          throw error;
+        }
       },
-      store: ({ documentName, state }) => {
-        return new Promise((resolve, reject) => {
-          const base64State = arrayBufferToBase64(state);
-          axios.post(`http://23.94.102.135:8000/api/v1/pe/docs/${documentName}/data/`, { yjs_data: base64State })
-            .then(() => {
-              resolve();
-            })
-            .catch(error => {
-              console.error(error);
-              reject();
-            });
-        });
+      store: async ({ documentName, state }) => {
+        const connection = await pool.getConnection();
+        try {
+          await connection.query(
+            `INSERT INTO docs (doc_id, yjs_data) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE yjs_data = ?`,
+            [documentName, state, state]
+          );
+          connection.release();
+        } catch (error) {
+          connection.release();
+          throw error;
+        }
       },
     }),
   ],
