@@ -173,6 +173,7 @@ def save_message(request):
             message_id=f"{group_id}{sender_uname}{now_str}"
         )
         message.save()
+
         if '/@/*ALL*' in content:
             # 执行相关逻辑，例如通知所有群组成员
             notification_content = f"{sender_uname} mentioned all in a message"
@@ -190,6 +191,7 @@ def save_message(request):
         mentioned_usernames = re.findall(pattern, content)
         if mentioned_usernames:
             for username in mentioned_usernames:
+                print(username)
                 if User.objects.filter(username=username).exists():
                     mentioned_user = User.objects.get(username=username)
                     notification_content = f"{sender_uname} mentioned you in a message"
