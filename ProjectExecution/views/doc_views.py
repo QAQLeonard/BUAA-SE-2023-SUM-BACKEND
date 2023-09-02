@@ -210,4 +210,6 @@ def document_data(request, doc_id):
                 doc.save()
             return JsonResponse({"message": "Document saved successfully"})
         except Exception as e:
+            print(e)
             return HttpResponseBadRequest(str(e))
+        
