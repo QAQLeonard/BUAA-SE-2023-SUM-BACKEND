@@ -29,7 +29,7 @@ urlpatterns = [
     path('get_doc_team_id', doc_views.get_doc_team_id),
     path('get_doc', doc_views.get_doc),
     path('convert_format', doc_views.convert_format),
-    path('docs/<str:doc_id>/data/', doc_views.DocumentData.as_view(), name='document_data'),
+    path('docs/<str:doc_id>/data/', doc_views.document_data, name='document_data'),
 
     path('get_node', node_views.get_node),
     path('get_all_nodes', node_views.get_all_nodes),

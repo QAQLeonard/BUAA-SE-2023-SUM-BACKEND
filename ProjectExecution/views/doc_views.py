@@ -188,18 +188,19 @@ def convert_format(request):
 
     return JsonResponse({"status": "success", "message": "File converted", "file": file_path},)
 
+
 @csrf_exempt
-class DocumentData(View):
-    def get(self, request, doc_id):
+def document_data(request, doc_id):
+    if request.method == 'GET':
         try:
             doc = Doc.objects.get(doc_id=doc_id)
             return JsonResponse({"data": doc.yjs_data})
         except Doc.DoesNotExist:
             return HttpResponseBadRequest('Document not found')
 
-    def post(self, request, doc_id):
+    elif request.method == 'POST':
         try:
-            yjs_data = request.body
+            yjs_data = request.body.decode('utf-8')  # 默认情况下，request.body 是 bytes 类型
             doc, created = Doc.objects.get_or_create(
                 doc_id=doc_id,
                 defaults={'yjs_data': yjs_data}
