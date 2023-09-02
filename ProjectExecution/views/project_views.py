@@ -60,7 +60,7 @@ def create_project(request):
     else:
         new_filename = f"{project.project_id}_image.png"
         default_image_path = 'resources/project_images/default_image.png'
-        with open(default_image_path, 'rb') as f:
+        with open(default_image_path, 'r+b') as f:
             new_file = ContentFile(f.read())
         new_file.name = new_filename
         project.project_image.save(new_filename, new_file, save=True)
