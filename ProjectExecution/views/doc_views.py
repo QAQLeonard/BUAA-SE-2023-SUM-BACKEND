@@ -30,6 +30,7 @@ def create_doc(request):
                             status=status.HTTP_400_BAD_REQUEST)
     yjs_data = None
     if model_id:
+        print("Model document found")
         try:
             model_doc = Doc.objects.get(doc_id=model_id)
             yjs_data = model_doc.yjs_data  # 从模型文档中获取yjs_data
