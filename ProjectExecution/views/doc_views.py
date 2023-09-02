@@ -23,6 +23,7 @@ def create_doc(request):
     project = request.project_object
     doc_name = request.data.get('doc_name')
     model_id = request.data.get('model_id')
+    print('model_id:'+model_id)
     # 校验参数
     if not doc_id or not doc_name:
         print("Missing required fields")
