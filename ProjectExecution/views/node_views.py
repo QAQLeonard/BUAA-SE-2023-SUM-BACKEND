@@ -67,15 +67,11 @@ def add_node(request):
             # Assume Doc object is created and its instance is available
         )
         if find_node_level(node) > 3:
-            return JsonResponse({"status": "error", "message": "Node level too deep"},
-                                status=status.HTTP_400_BAD_REQUEST)
-
+            return JsonResponse({"status": "error", "message": "Node level too deep"})
         if node.node_type == 'Folder' and find_node_level(node) == 3:
-            return JsonResponse({"status": "error", "message": "Folder level too deep"},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"status": "error", "message": "Folder level too deep"})
         if node.node_type == 'Doc' and find_node_level(node) == 1:
-            return JsonResponse({"status": "error", "message": "Doc cannot be created in root"},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"status": "error", "message": "Doc cannot be created in root"})
 
         if data['node_type'] == 'Doc':
             doc = Doc.objects.get(pk=data['doc_id'])
