@@ -67,7 +67,7 @@ def create_project(request):
             new_file = ContentFile(f.read())
         new_file.name = new_filename
         project.project_image.save(new_filename, new_file, save=True)
-        
+
     project_node = Node(
         node_id=project_id+"_001",
         node_name=project_name,

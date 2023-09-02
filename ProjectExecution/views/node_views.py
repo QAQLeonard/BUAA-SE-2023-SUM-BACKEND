@@ -88,10 +88,10 @@ def add_node(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['PUT'])
+@require_node
 def update_node(request):
     try:
-        node_id = request.data.get('node_id')
-        node = Node.objects.get(node_id=node_id)
+        node = request.node_object
         data = request.data
         node.node_name = data.get('node_name', node.node_name)
         # Update doc content if applicable
@@ -105,10 +105,10 @@ def update_node(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['DELETE'])
+@require_node
 def delete_node(request):
     try:
-        node_id = request.data.get('node_id')
-        node = Node.objects.get(node_id=node_id)
+        node = request.node_object
         delete_sub_nodes(node)
         return JsonResponse({"status": "success", "message": f"Node {node_id} deleted"})
     except Node.DoesNotExist:
