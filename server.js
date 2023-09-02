@@ -11,6 +11,12 @@ const pool = mysql.createPool({
 
 
 const server = Server.configure({
+  port: 8002,
+
+  async onConnect() {
+    console.log('🔮')
+  },
+
   extensions: [
     new Database({
       fetch: async ({ documentName }) => {
