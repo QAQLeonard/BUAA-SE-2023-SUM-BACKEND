@@ -188,9 +188,8 @@ def convert_format(request):
 
     return JsonResponse({"status": "success", "message": "File converted", "file": file_path},)
 
-
+@csrf_exempt
 class DocumentData(View):
-
     def get(self, request, doc_id):
         try:
             doc = Doc.objects.get(doc_id=doc_id)
