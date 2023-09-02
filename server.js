@@ -21,12 +21,15 @@ const server = Server.configure({
           .catch(error => {
             console.error(error);
             reject(null);
+            
           });
         });
       },
       store: ({ documentName, state }) => {
         return new Promise((resolve, reject) => {
-          axios.post(`http://23.94.102.135:8000/api/v1/pe/docs/${documentName}/data/`, { yjs_data: state }) // 根据后端视图来设置键名
+          axios.post(`http://23.94.102.135:8000/api/v1/pe/docs/${documentName}/data/`, state, {headers: {
+            'Content-Type': 'application/octet-stream'
+          }})
           .then(() => {
             resolve();
           })
