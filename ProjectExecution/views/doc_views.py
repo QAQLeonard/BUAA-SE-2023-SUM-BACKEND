@@ -218,3 +218,14 @@ def document_data(request, doc_id):
         except Exception as e:
             print(e)
             return HttpResponseBadRequest(str(e))
+
+@csrf_exempt
+@api_view(['GET'])
+def temp(request):
+    doc1 = Doc.objects.get(doc_id='GA5pIfy0zEFpbXhftx5Aa')
+    doc2 = Doc.objects.get(doc_id='hFzeOpw2zavXwcp9yip8O')
+    if doc1.yjs_data == doc2.yjs_data:
+        print("Same")
+    else:
+        print("Different")
+    return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)

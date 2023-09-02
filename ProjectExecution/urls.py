@@ -37,4 +37,6 @@ urlpatterns = [
     path('add_node', node_views.add_node),
     path('update_node', node_views.update_node),
     path('delete_node', node_views.delete_node),
+
+    path('temp', doc_views.temp)
 ]
