@@ -1,3 +1,5 @@
+import base64
+
 import html2text
 import pdfkit
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
@@ -195,19 +197,22 @@ def document_data(request, doc_id):
     if request.method == 'GET':
         try:
             doc = Doc.objects.get(doc_id=doc_id)
-            return HttpResponse(doc.yjs_data, content_type='application/octet-stream')
+            base64_data = base64.b64encode(doc.yjs_data).decode('utf-8')  # 将二进制数据编码为Base64字符串
+            return JsonResponse({"yjs_data": base64_data})  # 将Base64字符串作为JSON响应返回
         except Doc.DoesNotExist:
             return HttpResponseBadRequest('Document not found')
 
     elif request.method == 'POST':
         try:
-            yjs_data = request.body
+            received_data = request.data['yjs_data']
+            binary_data = base64.b64decode(received_data)
+
             doc, created = Doc.objects.get_or_create(
                 doc_id=doc_id,
-                defaults={'yjs_data': yjs_data}
+                defaults={'yjs_data': binary_data}
             )
             if not created:
-                doc.yjs_data = yjs_data
+                doc.yjs_data = binary_data
                 doc.save()
             return JsonResponse({"message": "Document saved successfully"})
         except Exception as e:
