@@ -60,6 +60,13 @@ def create_project(request):
             project.project_image.delete(save=False)  # 删除旧文件
             project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
 
+    project_node = Node(
+        node_id=project_id+"_001",
+        node_name=project_name,
+        node_type='Folder',
+    )
+    project_node.save()
+
     return Response({"status": "success", "message": "Project Created"}, status=status.HTTP_201_CREATED)
 
 
