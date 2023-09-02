@@ -13,7 +13,7 @@ const server = Server.configure({
     new Database({
       fetch: ({ documentName }) => {
         return new Promise((resolve, reject) => {
-          axios.get(`/api/v1/pe/docs/${documentName}/data/`)
+          axios.get(`http://localhost:8000/api/v1/pe/docs/${documentName}/data/`)
           .then(response => {
             resolve(response.data.yjs_data); // 如果返回的字段是'yjs_data'，请相应地调整这里
           })
@@ -25,7 +25,7 @@ const server = Server.configure({
       },
       store: ({ documentName, state }) => {
         return new Promise((resolve, reject) => {
-          axios.post(`/api/v1/pe/docs/${documentName}/data/`, { yjs_data: state }) // 根据后端视图来设置键名
+          axios.post(`http://localhost:8000/api/v1/pe/docs/${documentName}/data/`, { yjs_data: state }) // 根据后端视图来设置键名
           .then(() => {
             resolve();
           })
