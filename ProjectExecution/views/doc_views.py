@@ -29,7 +29,7 @@ def create_doc(request):
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
     yjs_data = None
-    if model_id:
+    if model_id != 'None':
         print("Model document found")
         try:
             model_doc = Doc.objects.get(doc_id=model_id)
