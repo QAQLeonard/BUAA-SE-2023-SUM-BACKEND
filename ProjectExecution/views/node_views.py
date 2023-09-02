@@ -46,6 +46,7 @@ def get_children_nodes(request):
         node_id = request.GET.get('node_id')
         if not node_id:
             node_id = request.data.get('node_id')
+        print(node_id)
         node = Node.objects.get(node_id=node_id)
         tree = [node.to_dict()]
         return JsonResponse({"data": tree}, safe=False)
