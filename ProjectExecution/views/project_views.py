@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ProjectExecution.views.decorators import *
-
+from portalocker import Lock
 from TeamManagement.models import Team, TeamMember
 from TeamManagement.views import require_team
 
@@ -54,11 +54,12 @@ def create_project(request):
     # 如果需要，你可以在这里进行额外的处理，比如图片文件重命名
     if project_image:
         new_filename = f"{project.project_id}_image.png"
-        with portalocker.Lock(project.project_image.path, 'rb'):
-            new_file = ContentFile(project.project_image.read())
-            new_file.name = new_filename
+        with Lock(project.project_image.path, 'r+b'):
             project.project_image.delete(save=False)  # 删除旧文件
-            project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
+
+        new_file = ContentFile(project.project_image.read())
+        new_file.name = new_filename
+        project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
 
     project_node = Node(
         node_id=project_id+"_001",
@@ -87,17 +88,16 @@ def update_project(request):
 
     # 处理图片
     if 'project_image' in request.FILES:
-        old_file = project.project_image
-        new_filename = f"{project.project_id}_image.png"
+        new_image = request.FILES.get('project_image')
+        with Lock(project.project_image.path, 'r+b'):
+            project.project_image.delete(save=False)
 
-        new_file = ContentFile(old_file.read())
+        new_filename = f"{project.project_id}_image.png"
+        new_file = ContentFile(new_image.read())
         new_file.name = new_filename
 
-        project.project_image.delete(save=False)  # 删除旧文件
         project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
-    else:
-        return Response({"status": "error", "message": "No image file provided"}, status=status.HTTP_400_BAD_REQUEST)
-    project.save()
+
 
     return Response({"status": "success", "message": "Project Updated"}, status=status.HTTP_200_OK)
 
