@@ -30,13 +30,9 @@ def create_doc(request):
                             status=status.HTTP_400_BAD_REQUEST)
     yjs_data = None
     if model_id != 'None':
-        print("Model document found")
-        try:
+        if Doc.objects.filter(doc_id=model_id).exists():
             model_doc = Doc.objects.get(doc_id=model_id)
             yjs_data = model_doc.yjs_data  # 从模型文档中获取yjs_data
-        except Doc.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Model document not found"},
-                                status=status.HTTP_400_BAD_REQUEST)
 
     if Doc.objects.filter(doc_id=doc_id).exists():
         doc = Doc.objects.get(doc_id=doc_id)
