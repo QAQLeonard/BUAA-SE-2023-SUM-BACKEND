@@ -200,7 +200,7 @@ def document_data(request, doc_id):
 
     elif request.method == 'POST':
         try:
-            yjs_data = request.body.decode('utf-8')  # 默认情况下，request.body 是 bytes 类型
+            yjs_data = request.body
             doc, created = Doc.objects.get_or_create(
                 doc_id=doc_id,
                 defaults={'yjs_data': yjs_data}
@@ -212,4 +212,3 @@ def document_data(request, doc_id):
         except Exception as e:
             print(e)
             return HttpResponseBadRequest(str(e))
-        
