@@ -83,3 +83,34 @@ def update_notification(request):
     notification.is_read = is_read
     notification.save()
     return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_notification(request):
+    notification_id = request.GET.get('notification_id')
+    notification = Notification.objects.get(notification_id=notification_id)
+    notification.delete()
+    return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_read_notifications(request):
+    user = request.user
+    Notification.objects.filter(user=user, is_read=True).delete()
+    return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def read_all_notifications(request):
+    user = request.user
+    Notification.objects.filter(user=user).update(is_read=True)
+    return Response({"status": "success"}, status=status.HTTP_200_OK)
