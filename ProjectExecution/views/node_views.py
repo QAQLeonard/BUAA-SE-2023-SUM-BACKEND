@@ -72,7 +72,8 @@ def add_node(request):
             return JsonResponse({"status": "error", "message": "Folder level too deep"})
         if node.node_type == 'Doc' and find_node_level(node) == 1:
             return JsonResponse({"status": "error", "message": "Doc cannot be created in root"})
-
+        if node.parent_node_id and node.parent_node.node_type == 'Doc':
+            return JsonResponse({"status": "error", "message": "Node cannot be created under Doc"})
         if data['node_type'] == 'Doc':
             doc = Doc.objects.get(pk=data['doc_id'])
             node.doc = doc
