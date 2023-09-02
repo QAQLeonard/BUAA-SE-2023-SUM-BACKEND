@@ -46,16 +46,9 @@ def add_node(request):
             node_id=data['node_id'],
             node_name=data['node_name'],
             node_type=data['node_type'],
+            parent_node=Node.objects.get(pk=data['parent_id']) if data.get('parent_id') else None,
             # Assume Doc object is created and its instance is available
         )
-        if data['parent_node_id']:
-            if not Node.objects.filter(node_id=data['parent_node_id']).exists():
-                return JsonResponse({"status": "error", "message": "Parent node not found"})
-            parent_node = Node.objects.get(node_id=data['parent_node_id'])
-            node.parent_node = parent_node
-        else:
-            node.parent_node = None
-
         if node.node_type == 'Folder' and find_node_level(node) >= 3:
             return JsonResponse({"status": "error", "message": "Folder level too deep"})
         if node.node_type == 'Doc' and find_node_level(node) == 1:
