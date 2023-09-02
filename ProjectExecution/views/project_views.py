@@ -44,7 +44,6 @@ def create_project(request):
         project_name=project_name,
         project_description=project_description,
         team=team,
-        project_image=project_image,
         created_at=created_at
     )
 
@@ -54,10 +53,8 @@ def create_project(request):
     # 如果需要，你可以在这里进行额外的处理，比如图片文件重命名
     if project_image:
         new_filename = f"{project.project_id}_image.png"
-        with Lock(project.project_image.path, 'r+b'):
-            project.project_image.delete(save=False)  # 删除旧文件
 
-        new_file = ContentFile(project.project_image.read())
+        new_file = ContentFile(project_image.read())
         new_file.name = new_filename
         project.project_image.save(new_filename, new_file, save=True)  # 保存新文件
     else:
