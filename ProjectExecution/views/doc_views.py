@@ -222,8 +222,8 @@ def document_data(request, doc_id):
 @csrf_exempt
 @api_view(['GET'])
 def temp(request):
-    doc1 = Doc.objects.get(doc_id='GA5pIfy0zEFpbXhftx5Aa')
-    doc2 = Doc.objects.get(doc_id='hFzeOpw2zavXwcp9yip8O')
+    doc1 = Doc.objects.get(doc_id='cxlMy6qJGxu4pcdKL15yF')
+    doc2 = Doc.objects.get(doc_id='template1')
     if doc1.yjs_data == doc2.yjs_data:
         print("Same")
     else:
