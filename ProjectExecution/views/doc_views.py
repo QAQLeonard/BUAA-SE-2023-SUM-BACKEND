@@ -195,7 +195,7 @@ def document_data(request, doc_id):
     if request.method == 'GET':
         try:
             doc = Doc.objects.get(doc_id=doc_id)
-            return JsonResponse({"data": doc.yjs_data})
+            return HttpResponse(doc.yjs_data, content_type='application/octet-stream')
         except Doc.DoesNotExist:
             return HttpResponseBadRequest('Document not found')
 
