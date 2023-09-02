@@ -44,6 +44,7 @@ def get_all_nodes(request):
 def get_children_nodes(request):
     try:
         node_id = request.GET.get('node_id')
+        print(node_id)
         parent_node = Node.objects.get(node_id=node_id)
         children = Node.objects.filter(parent_node=parent_node)
         tree = [child.to_dict() for child in children]
