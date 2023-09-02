@@ -186,3 +186,14 @@ def save_prototype_preview(request):
     prototype.prototype_preview_file.save(data_filename, data_file)
 
     return Response({"status": "success", "message": "Prototype Preview Saved"}, status=status.HTTP_200_OK)
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@require_project
+def get_project_prototype_previews(request):
+    project = request.project_object
+    prototypes = Prototype.objects.filter(project=project, tag='Normal')
+    response_data = []
+    for prototype in prototypes:

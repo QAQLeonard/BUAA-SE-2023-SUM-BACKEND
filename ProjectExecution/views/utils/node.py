@@ -13,3 +13,11 @@ def build_tree(queryset):
             root_nodes.append(node_dict[node.node_id])
 
     return root_nodes
+
+
+def find_node_level(node):
+    level = 1
+    while node.parent_node is not None:
+        level += 1
+        node = node.parent_node
+    return level

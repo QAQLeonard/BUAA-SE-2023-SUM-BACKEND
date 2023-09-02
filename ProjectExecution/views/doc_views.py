@@ -20,20 +20,30 @@ def create_doc(request):
     doc_id = request.data.get('doc_id')
     project = request.project_object
     doc_name = request.data.get('doc_name')
-
+    model_id = request.data.get('model_id')
     # 校验参数
     if not doc_id or not doc_name:
         print("Missing required fields")
         return JsonResponse({"status": "error", "message": "Missing required fields"},
                             status=status.HTTP_400_BAD_REQUEST)
+    yjs_data = None
+    if model_id:
+        try:
+            model_doc = Doc.objects.get(doc_id=model_id)
+            yjs_data = model_doc.yjs_data  # 从模型文档中获取yjs_data
+        except Doc.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Model document not found"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
     if Doc.objects.filter(doc_id=doc_id).exists():
         doc = Doc.objects.get(doc_id=doc_id)
         doc.doc_name = doc_name
         doc.project = project
+        doc.yjs_data = yjs_data
         doc.save()
-
-    doc = Doc(doc_id=doc_id, project=project, doc_name=doc_name)
-    doc.save()
+    else:
+        doc = Doc(doc_id=doc_id, project=project, doc_name=doc_name, yjs_data=yjs_data)
+        doc.save()
     return JsonResponse({"status": "success", "message": "Document created"}, status=status.HTTP_201_CREATED)
 
 
