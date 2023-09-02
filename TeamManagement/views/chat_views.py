@@ -81,10 +81,14 @@ def create_public_group(request):
         role='Creator'
     )
     group_member.save()
+    group_data = {
+        "group_id": group.group_id,
+        "group_name": group.group_name,
+        "group_type": group.group_type,
+    }
     return JsonResponse({
         "status": "success",
-        "message": "Group created successfully",
-        "group_id": group_id
+        "data": group_data,
     })
 
 

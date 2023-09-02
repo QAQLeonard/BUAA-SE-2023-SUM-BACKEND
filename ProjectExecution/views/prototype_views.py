@@ -190,8 +190,6 @@ def save_prototype_preview(request):
 
 @csrf_exempt
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
 @require_project
 def get_project_prototype_previews(request):
     project = request.project_object
